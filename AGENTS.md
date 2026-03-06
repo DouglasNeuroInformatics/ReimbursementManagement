@@ -78,6 +78,7 @@ DRAFT → SUBMITTED → SUPERVISOR_APPROVED → FINANCE_APPROVED → PAID
 ### Frontend Structure
 - **File-based routing**: `frontend/src/routes/` using TanStack Router
 - **Route guards**: `_auth/` wrapper for authenticated routes, nested `route.tsx` for role-based access
+- **Request History**: `_auth/review/history.tsx` - past approved/paid requests visible to SUPERVISOR and FINANCIAL_ADMIN
 - **API client**: `frontend/src/lib/api.ts` - fetch wrapper with auto token refresh
 - **State management**: TanStack Query (server state), TanStack Form (form state)
 

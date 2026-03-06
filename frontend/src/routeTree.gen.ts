@@ -20,6 +20,7 @@ import { Route as AuthReviewIndexRouteImport } from './routes/_auth/review/index
 import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
 import { Route as AuthFinanceIndexRouteImport } from './routes/_auth/finance/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as AuthReviewHistoryRouteImport } from './routes/_auth/review/history'
 import { Route as AuthReviewRequestIdRouteImport } from './routes/_auth/review/$requestId'
 import { Route as AuthFinanceRequestIdRouteImport } from './routes/_auth/finance/$requestId'
 import { Route as AuthAdminUsersRouteImport } from './routes/_auth/admin/users'
@@ -86,6 +87,11 @@ const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
   getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthReviewHistoryRoute = AuthReviewHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthReviewRouteRoute,
 } as any)
 const AuthReviewRequestIdRoute = AuthReviewRequestIdRouteImport.update({
   id: '/$requestId',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthAdminUsersRoute
   '/finance/$requestId': typeof AuthFinanceRequestIdRoute
   '/review/$requestId': typeof AuthReviewRequestIdRoute
+  '/review/history': typeof AuthReviewHistoryRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
   '/finance/': typeof AuthFinanceIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthAdminUsersRoute
   '/finance/$requestId': typeof AuthFinanceRequestIdRoute
   '/review/$requestId': typeof AuthReviewRequestIdRoute
+  '/review/history': typeof AuthReviewHistoryRoute
   '/dashboard': typeof AuthDashboardIndexRoute
   '/finance': typeof AuthFinanceIndexRoute
   '/profile': typeof AuthProfileIndexRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/_auth/admin/users': typeof AuthAdminUsersRoute
   '/_auth/finance/$requestId': typeof AuthFinanceRequestIdRoute
   '/_auth/review/$requestId': typeof AuthReviewRequestIdRoute
+  '/_auth/review/history': typeof AuthReviewHistoryRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/finance/': typeof AuthFinanceIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/finance/$requestId'
     | '/review/$requestId'
+    | '/review/history'
     | '/dashboard/'
     | '/finance/'
     | '/profile/'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/finance/$requestId'
     | '/review/$requestId'
+    | '/review/history'
     | '/dashboard'
     | '/finance'
     | '/profile'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/_auth/admin/users'
     | '/_auth/finance/$requestId'
     | '/_auth/review/$requestId'
+    | '/_auth/review/history'
     | '/_auth/dashboard/'
     | '/_auth/finance/'
     | '/_auth/profile/'
@@ -384,6 +396,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthDashboardIndexRouteImport
       parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/review/history': {
+      id: '/_auth/review/history'
+      path: '/history'
+      fullPath: '/review/history'
+      preLoaderRoute: typeof AuthReviewHistoryRouteImport
+      parentRoute: typeof AuthReviewRouteRoute
     }
     '/_auth/review/$requestId': {
       id: '/_auth/review/$requestId'
@@ -499,11 +518,13 @@ const AuthFinanceRouteRouteWithChildren =
 
 interface AuthReviewRouteRouteChildren {
   AuthReviewRequestIdRoute: typeof AuthReviewRequestIdRoute
+  AuthReviewHistoryRoute: typeof AuthReviewHistoryRoute
   AuthReviewIndexRoute: typeof AuthReviewIndexRoute
 }
 
 const AuthReviewRouteRouteChildren: AuthReviewRouteRouteChildren = {
   AuthReviewRequestIdRoute: AuthReviewRequestIdRoute,
+  AuthReviewHistoryRoute: AuthReviewHistoryRoute,
   AuthReviewIndexRoute: AuthReviewIndexRoute,
 }
 

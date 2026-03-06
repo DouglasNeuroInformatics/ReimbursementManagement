@@ -31,6 +31,7 @@ A full-stack expense reimbursement and travel request management system with a m
   - [Submitting, Revising, and Deleting](#submitting-revising-and-deleting)
 - [For Supervisors](#for-supervisors)
   - [Review Queue](#review-queue)
+  - [Request History](#request-history)
   - [Reviewing a Request](#reviewing-a-request)
   - [Approving a Request](#approving-a-request)
   - [Rejecting a Request](#rejecting-a-request)
@@ -308,6 +309,7 @@ The left sidebar is visible on every authenticated page. Navigation items change
 | Dashboard         | All users                           | `/dashboard`                  |
 | My Requests       | All users                           | `/dashboard/requests`         |
 | Review Queue      | Supervisors, Financial Admins       | `/review`                     |
+| Request History   | Supervisors, Financial Admins       | `/review/history`             |
 | Finance Queue     | Financial Admins only               | `/finance`                    |
 | Admin             | Financial Admins only               | `/admin/users`                |
 
@@ -511,7 +513,7 @@ The approval history is preserved, so reviewers can see prior rejection comments
 
 ## For Supervisors
 
-Supervisors see everything a regular user sees, plus the **Review Queue** in the sidebar. They can create and manage their own requests and also review requests submitted by their subordinates.
+Supervisors see everything a regular user sees, plus the **Review Queue** and **Request History** in the sidebar. They can create and manage their own requests and also review requests submitted by their subordinates.
 
 A user becomes a supervisor when a financial admin assigns them the **Supervisor** role via the Admin page. Subordinates are users whose supervisor field is set to this supervisor. If a user has no supervisor assigned, any supervisor can review their requests.
 
@@ -527,6 +529,22 @@ Click **Review Queue** in the sidebar to see all requests awaiting your review.
   - **Status** -- always "Submitted" in this queue.
   - **Submitted** -- the date the request was submitted.
 - Click any column header to sort.
+
+### Request History
+
+Click **Request History** in the sidebar to view all past requests that have moved beyond supervisor review.
+
+- **Heading**: "Request History" with a count of completed or processed requests.
+- **Table**: lists all requests with status **Supervisor Approved**, **Finance Approved**, **Finance Rejected**, or **Paid**, showing:
+  - **User** -- the requester's name.
+  - **Title** -- clickable link to the review detail page (read-only, no approval form shown for completed requests).
+  - **Type** -- request type.
+  - **Status** -- color-coded badge showing the current status.
+  - **Account** -- the billing account selected by the supervisor during approval.
+  - **Submitted** -- the date the request was originally submitted.
+- Click any column header to sort.
+
+This page provides supervisors and financial administrators with a complete audit trail of all processed requests, without needing to search through active queues.
 
 ### Reviewing a Request
 
@@ -567,6 +585,7 @@ Financial administrators have the highest level of access. They see everything s
 
 - Create and manage their own reimbursement requests.
 - Review submitted requests in the Review Queue (same as supervisors).
+- View all past processed requests in the Request History (same as supervisors).
 - Process supervisor-approved requests in the Finance Queue.
 - Mark approved requests as paid.
 - Manage all users: assign roles, set supervisor relationships, and manage billing accounts.
@@ -892,6 +911,7 @@ ReimbursementManagement/
         |       |-- review/
         |       |   |-- route.tsx     # SUPERVISOR/FINANCIAL_ADMIN guard
         |       |   |-- index.tsx     # Supervisor review queue
+        |       |   |-- history.tsx   # Request history (past approved/paid)
         |       |   |-- $requestId.tsx # Review detail + approval form
         |       |-- finance/
         |       |   |-- route.tsx     # FINANCIAL_ADMIN guard

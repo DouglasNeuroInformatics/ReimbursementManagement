@@ -25,7 +25,10 @@ export function Sidebar({ user }: Props) {
         <NavItem to="/dashboard">Dashboard</NavItem>
         <NavItem to="/dashboard/requests">My Requests</NavItem>
         {(user.role === 'SUPERVISOR' || user.role === 'FINANCIAL_ADMIN') && (
-          <NavItem to="/review">Review Queue</NavItem>
+          <>
+            <NavItem to="/review">Review Queue</NavItem>
+            <NavItem to="/review/history">Request History</NavItem>
+          </>
         )}
         {user.role === 'FINANCIAL_ADMIN' && (
           <>
