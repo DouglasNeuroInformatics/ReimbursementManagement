@@ -117,7 +117,10 @@ export async function getRequests(
   const requests = await prisma.request.findMany({
     where,
     include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      user: { select: { id: true, firstName: true, lastName: true, email: true, supervisorId: true } },
+      reimbursement: { include: { items: { select: { amount: true } } } },
+      travelAdvance: { select: { estimatedAmount: true } },
+      travelReimbursement: { select: { totalAmount: true } },
       approvals: {
         include: {
           actor: { select: { id: true, firstName: true, lastName: true } },
