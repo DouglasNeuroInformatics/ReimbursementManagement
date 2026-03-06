@@ -55,7 +55,7 @@ function _cleanupExpiredEntries(): void {
 
 function _getClientIp(c: Parameters<MiddlewareHandler>[0]): string {
   // Only trust X-Forwarded-For when behind a known reverse proxy.
-  // In this deployment, nginx sets X-Real-IP which is more reliable
+  // In this deployment, Caddy sets X-Real-IP which is more reliable
   // than X-Forwarded-For (which can be spoofed by the client).
   return (
     c.req.header("X-Real-IP") ??
