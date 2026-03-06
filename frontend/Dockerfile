@@ -3,6 +3,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+ARG VITE_CURRENCY=CAD
+ENV VITE_CURRENCY=$VITE_CURRENCY
 RUN npm run build
 
 FROM caddy:2-alpine

@@ -64,6 +64,8 @@ services:
   web:
     build:
       context: ./frontend
+      args:
+        VITE_CURRENCY: ${CURRENCY:-CAD}
     restart: unless-stopped
     depends_on:
       - api
