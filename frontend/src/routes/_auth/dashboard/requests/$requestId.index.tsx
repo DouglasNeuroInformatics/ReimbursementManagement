@@ -64,13 +64,7 @@ function RequestDetailPage() {
       {request.reimbursement && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">Reimbursement Items</span>
-              <span className="text-sm text-gray-500 font-medium">
-                Total: {fmtCurrency(request.reimbursement.items
-                  .reduce((sum, it) => sum + parseFloat(it.amount), 0))}
-              </span>
-            </div>
+            <span className="font-semibold">Reimbursement Items</span>
           </CardHeader>
           <CardBody className="p-0">
             {request.reimbursement.items.length === 0 ? (
@@ -103,6 +97,13 @@ function RequestDetailPage() {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot className="border-t border-gray-200 bg-gray-50">
+                  <tr>
+                    <td colSpan={3} className="px-4 py-2 text-right font-semibold text-gray-700">Total</td>
+                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{fmtCurrency(request.reimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td />
+                  </tr>
+                </tfoot>
               </table>
             )}
           </CardBody>
@@ -134,6 +135,13 @@ function RequestDetailPage() {
                     <td className="py-1.5 pl-4 text-gray-500">{it.notes ?? '—'}</td>
                   </tr>
                 ))}</tbody>
+                <tfoot className="border-t border-gray-200 bg-gray-50">
+                  <tr>
+                    <td className="py-1.5 text-right font-semibold text-gray-700">Total</td>
+                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(request.travelAdvance.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td />
+                  </tr>
+                </tfoot>
               </table>
             )}
           </CardBody>
@@ -163,6 +171,12 @@ function RequestDetailPage() {
                     <td className="py-1.5 text-right">{fmtCurrency(it.amount)}</td>
                   </tr>
                 ))}</tbody>
+                <tfoot className="border-t border-gray-200 bg-gray-50">
+                  <tr>
+                    <td colSpan={2} className="py-1.5 text-right font-semibold text-gray-700">Total</td>
+                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(request.travelReimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                  </tr>
+                </tfoot>
               </table>
             )}
           </CardBody>
