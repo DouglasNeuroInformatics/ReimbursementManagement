@@ -11,6 +11,7 @@ import { Link } from '@tanstack/react-router'
 import { StatusBadge } from '../ui/Badge'
 import type { Request } from '../../types'
 import { fmtDate } from '../../utils/dates'
+import { fmtCurrency, getRequestTotal } from '../../utils/currency'
 
 const col = createColumnHelper<Request>()
 
@@ -49,6 +50,14 @@ export function RequestsTable({ data, linkTo, showUser = false, showAccount = fa
       (r) => r.approvals?.find((a) => a.stage === 'SUPERVISOR' && a.action === 'APPROVE')?.account?.accountNumber ?? '—',
       { id: 'account', header: 'Account' },
     )] : []),
+    col.accessor((r) => getRequestTotal(r), {
+      id: 'amount',
+      header: 'Amount',
+      cell: (info) => {
+        const v = info.getValue()
+        return v !== null ? <span className="font-medium">{fmtCurrency(v)}</span> : '—'
+      },
+    }),
     col.accessor('submittedAt', {
       header: 'Submitted',
       cell: (info) => fmtDate(info.getValue()),

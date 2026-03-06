@@ -7,6 +7,7 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { PageSpinner } from '../../../../components/ui/Spinner'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { fmtDate, fmtDateTime } from '../../../../utils/dates'
+import { fmtCurrency } from '../../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/')({ component: RequestDetailPage })
 
@@ -66,9 +67,8 @@ function RequestDetailPage() {
             <div className="flex items-center justify-between">
               <span className="font-semibold">Reimbursement Items</span>
               <span className="text-sm text-gray-500 font-medium">
-                Total: {request.reimbursement.items
-                  .reduce((sum, it) => sum + parseFloat(it.amount), 0)
-                  .toFixed(2)}
+                Total: {fmtCurrency(request.reimbursement.items
+                  .reduce((sum, it) => sum + parseFloat(it.amount), 0))}
               </span>
             </div>
           </CardHeader>
@@ -92,7 +92,7 @@ function RequestDetailPage() {
                       <td className="px-4 py-2">{it.description}</td>
                       <td className="px-4 py-2">{fmtDate(it.date)}</td>
                       <td className="px-4 py-2 text-gray-500">{it.vendor ?? '—'}</td>
-                      <td className="px-4 py-2 text-right font-medium">{parseFloat(it.amount).toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right font-medium">{fmtCurrency(it.amount)}</td>
                       <td className="px-4 py-2 text-center">
                         {(it.documents?.length ?? 0) > 0 ? (
                           <span className="text-xs text-blue-600">{it.documents.length} file(s)</span>
@@ -118,7 +118,7 @@ function RequestDetailPage() {
               <dt className="text-gray-500">Purpose</dt><dd>{request.travelAdvance.purpose}</dd>
               <dt className="text-gray-500">Departure</dt><dd>{fmtDate(request.travelAdvance.departureDate)}</dd>
               <dt className="text-gray-500">Return</dt><dd>{fmtDate(request.travelAdvance.returnDate)}</dd>
-              <dt className="text-gray-500">Estimated Amount</dt><dd className="font-medium">{request.travelAdvance.estimatedAmount}</dd>
+              <dt className="text-gray-500">Estimated Amount</dt><dd className="font-medium">{fmtCurrency(request.travelAdvance.estimatedAmount)}</dd>
             </dl>
             {request.travelAdvance.items.length > 0 && (
               <table className="w-full text-sm">
@@ -130,7 +130,7 @@ function RequestDetailPage() {
                 <tbody>{request.travelAdvance.items.map((it) => (
                   <tr key={it.id} className="border-b border-gray-50">
                     <td className="py-1.5">{it.category}</td>
-                    <td className="py-1.5 text-right">{it.amount}</td>
+                    <td className="py-1.5 text-right">{fmtCurrency(it.amount)}</td>
                     <td className="py-1.5 pl-4 text-gray-500">{it.notes ?? '—'}</td>
                   </tr>
                 ))}</tbody>
@@ -147,7 +147,7 @@ function RequestDetailPage() {
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <dt className="text-gray-500">Destination</dt><dd>{request.travelReimbursement.destination}</dd>
               <dt className="text-gray-500">Purpose</dt><dd>{request.travelReimbursement.purpose}</dd>
-              <dt className="text-gray-500">Total Amount</dt><dd className="font-medium">{request.travelReimbursement.totalAmount}</dd>
+              <dt className="text-gray-500">Total Amount</dt><dd className="font-medium">{fmtCurrency(request.travelReimbursement.totalAmount)}</dd>
             </dl>
             {request.travelReimbursement.items.length > 0 && (
               <table className="w-full text-sm">
@@ -160,7 +160,7 @@ function RequestDetailPage() {
                   <tr key={it.id} className="border-b border-gray-50">
                     <td className="py-1.5">{fmtDate(it.date)}</td>
                     <td className="py-1.5">{it.category}</td>
-                    <td className="py-1.5 text-right">{it.amount}</td>
+                    <td className="py-1.5 text-right">{fmtCurrency(it.amount)}</td>
                   </tr>
                 ))}</tbody>
               </table>
