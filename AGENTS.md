@@ -1,0 +1,129 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Development Commands
+
+### Start Development Environment
+```bash
+# Development mode with hot-reload (frontend Vite HMR, backend Deno --watch)
+docker compose -f docker-compose.dev.yml up -d
+
+# Production mode (optimized builds)
+docker compose up -d
+```
+
+### Backend (Deno)
+```bash
+# Run backend directly (requires Deno 2.3+, .env file)
+deno task dev          # Hot-reload development
+deno task start        # Production run
+deno task test         # Run tests
+
+# Database operations
+deno task db:generate  # Generate Prisma client
+deno task db:migrate   # Create and apply migration
+deno task db:push      # Push schema without migration
+deno task db:migrate:deploy  # Deploy migrations (production)
+```
+
+### Frontend (Node.js)
+```bash
+cd frontend
+npm run dev      # Vite dev server (HMR)
+npm run build    # Production build
+npm run preview  # Preview production build
+```
+
+### Database Access
+```bash
+# Direct PostgreSQL access
+docker compose exec db psql -U app -d reimbursement
+
+# Run SQL directly
+docker compose exec db psql -U app -d reimbursement -c "SELECT * FROM \"User\";"
+```
+
+## Architecture Overview
+
+This is a **multi-stage approval workflow system** for expense reimbursements and travel requests.
+
+**Stack:**
+- **Frontend**: React 19, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4, Vite
+- **Backend**: Deno 2.3, Hono v4, Prisma v6, PostgreSQL 16
+- **Storage**: RustFS (S3-compatible)
+- **Infrastructure**: Docker Compose, nginx reverse proxy
+
+**Request Flow:**
+```
+DRAFT → SUBMITTED → SUPERVISOR_APPROVED → FINANCE_APPROVED → PAID
+                   ↓ (rejected)        ↓ (rejected)
+         SUPERVISOR_REJECTED    FINANCE_REJECTED (can revise & resubmit)
+```
+
+**Three user roles:**
+- `USER`: Create and manage own requests
+- `SUPERVISOR`: Review subordinates' requests, approve with billing account selection
+- `FINANCIAL_ADMIN`: Final approval, mark paid, manage users and accounts
+
+## Key Technical Details
+
+### Backend Structure
+- **Entry point**: `backend/main.ts` - mounts Hono routes, initializes S3 bucket
+- **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts
+- **Services**: `backend/src/services/` - business logic layer
+- **Middleware**: `backend/src/middleware/auth.ts` - JWT auth, CSRF protection (`X-Requested-With` header required), role gates
+- **Lib**: `backend/src/lib/` - Prisma client singleton, S3 client, JWT utilities, env validation
+
+### Frontend Structure
+- **File-based routing**: `frontend/src/routes/` using TanStack Router
+- **Route guards**: `_auth/` wrapper for authenticated routes, nested `route.tsx` for role-based access
+- **API client**: `frontend/src/lib/api.ts` - fetch wrapper with auto token refresh
+- **State management**: TanStack Query (server state), TanStack Form (form state)
+
+### Database Schema (Prisma)
+Key models:
+- `User`: role-based access, supervisor relationship (self-referential)
+- `Request`: polymorphic via 1:1 relations to `ReimbursementDetail`, `TravelAdvanceDetail`, or `TravelReimbursementDetail`
+- `SupervisorAccount`: billing accounts that supervisors select when approving
+- `Document`: S3 file metadata, can be request-level or per-item (ReimbursementItem)
+- `Approval`: audit trail of workflow actions
+
+All monetary fields are `Decimal(12,2)`.
+
+### Authentication
+- Passwords hashed with Argon2
+- JWT access tokens (15 min) + refresh tokens (7 days) in HTTP-only cookies
+- CSRF protection via `X-Requested-With` header requirement on mutating requests
+- Rate limiting: 15 req/min on auth endpoints
+
+### File Storage
+- S3-compatible (RustFS) via presigned URLs
+- Upload: multipart form data to `/api/requests/:id/documents`
+- Download: 5-minute TTL presigned URLs from `/api/requests/:id/documents/:docId/url`
+- 50MB file size limit, validated content types
+
+## Development Notes
+
+### Seeded Test Users (dev mode only)
+- `admin@test.com` / `Test1234!` - FINANCIAL_ADMIN
+- `supervisor@test.com` / `Test1234!` - SUPERVISOR (reports to admin)
+- `user@test.com` / `Test1234!` - USER (reports to supervisor)
+
+### Port Mapping
+- 3000: nginx (frontend SPA + API proxy)
+- 8000: Hono API
+- 5432: PostgreSQL
+- 9000: RustFS S3
+- 9001: RustFS console
+
+### Request Type Specifics
+- **General Reimbursement**: Multiple line items, documents attached per-item
+- **Travel Advance**: Estimated expense categories, request-level documents
+- **Travel Reimbursement**: Actual expense items, optional link to prior Travel Advance
+
+### Important Validation
+- Requests editable only when DRAFT, SUPERVISOR_REJECTED, or FINANCE_REJECTED
+- Only owners can edit/delete their requests
+- Supervisors can only approve requests from their subordinates (or anyone if no supervisor assigned)
+- Supervisor approval requires selecting a billing account
