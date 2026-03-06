@@ -52,7 +52,7 @@ This is a **multi-stage approval workflow system** for expense reimbursements an
 - **Frontend**: React 19, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4, Vite
 - **Backend**: Deno 2.3, Hono v4, Prisma v6, PostgreSQL 16
 - **Storage**: RustFS (S3-compatible)
-- **Infrastructure**: Docker Compose, nginx reverse proxy
+- **Infrastructure**: Docker Compose, Caddy reverse proxy
 
 **Request Flow:**
 ```
@@ -111,7 +111,7 @@ All monetary fields are `Decimal(12,2)`.
 - `user@test.com` / `Test1234!` - USER (reports to supervisor)
 
 ### Port Mapping
-- 3000: nginx (frontend SPA + API proxy)
+- 3000: Caddy (frontend SPA + API proxy)
 - 8000: Hono API
 - 5432: PostgreSQL
 - 9000: RustFS S3
@@ -165,4 +165,4 @@ Performance indexes are defined in `schema.prisma`:
 - Route guards use safe type checks instead of unsafe `as` assertions
 
 **Infrastructure:**
-- nginx serves security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`
+- Caddy serves security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`

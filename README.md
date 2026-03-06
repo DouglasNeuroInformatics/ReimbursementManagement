@@ -63,7 +63,7 @@ A full-stack expense reimbursement and travel request management system with a m
                          port 3000
                                |
                       +--------v--------+
-                      |   nginx (web)   |  static SPA + reverse proxy
+                      |   Caddy (web)  |  static SPA + reverse proxy
                       +---+----------+--+
                           |          |
                    /assets/*     /api/*
@@ -84,7 +84,7 @@ A full-stack expense reimbursement and travel request management system with a m
 
 | Service   | Image                    | Purpose                                      | Exposed Port |
 |-----------|--------------------------|----------------------------------------------|--------------|
-| `web`     | nginx:1.27-alpine        | Serves frontend SPA, reverse-proxies `/api/` | 3000         |
+| `web`     | caddy:2-alpine           | Serves frontend SPA, reverse-proxies `/api/` | 3000         |
 | `api`     | denoland/deno:2.3.3      | REST API server                              | 8000         |
 | `db`      | postgres:16-alpine       | Relational database                          | --           |
 | `rustfs`  | rustfs/rustfs:latest     | S3-compatible object storage for documents   | 9000, 9001   |
@@ -119,7 +119,7 @@ A full-stack expense reimbursement and travel request management system with a m
    docker compose up -d
    ```
 
-   This builds the frontend (multi-stage: npm build then nginx), builds the backend Docker image, runs database migrations automatically, then starts the API and web server.
+   This builds the frontend (multi-stage: npm build then Caddy), builds the backend Docker image, runs database migrations automatically, then starts the API and web server.
 
 4. **Access the application** at [http://localhost:3000](http://localhost:3000).
 
@@ -806,7 +806,7 @@ All monetary amounts are stored as `Decimal(12,2)`.
 |------------------------|--------------------------------------------|
 | PostgreSQL 16          | Relational database                        |
 | RustFS                 | S3-compatible object storage               |
-| nginx 1.27             | Static file server and reverse proxy       |
+| Caddy 2                | Static file server and reverse proxy       |
 | Docker Compose         | Container orchestration                    |
 
 ---
@@ -852,8 +852,8 @@ ReimbursementManagement/
 |           |-- env.ts            # Environment config with Zod validation
 |
 |-- frontend/
-    |-- Dockerfile                # Multi-stage build (node build + nginx)
-    |-- nginx.conf                # Reverse proxy + SPA fallback config
+    |-- Dockerfile                # Multi-stage build (node build + Caddy)
+    |-- Caddyfile                 # Reverse proxy + SPA fallback config
     |-- package.json              # Dependencies and scripts
     |-- vite.config.ts            # Vite + Tailwind + TanStack Router
     |-- src/
