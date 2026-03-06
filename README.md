@@ -168,6 +168,7 @@ Copy `.env.example` to `.env` and configure:
 | `RUSTFS_SECRET_KEY`   | Yes      | --                | S3 secret key (minimum 16 characters)                              |
 | `JWT_SECRET`          | Yes      | --                | HMAC key for signing access tokens (minimum 32 characters)         |
 | `JWT_REFRESH_SECRET`  | Yes      | --                | HMAC key for signing refresh tokens (minimum 32 characters)        |
+| `NODE_ENV`            | No       | `development`     | Set to `production` to enable secure (HTTPS-only) cookies          |
 | `CURRENCY`            | No       | `CAD`             | ISO 4217 currency code displayed in the UI                         |
 | `S3_PUBLIC_ENDPOINT`  | No       | `http://localhost:9000` | Public URL for S3 presigned download URLs (adjust for production) |
 
@@ -698,8 +699,8 @@ Authentication endpoints are rate-limited to 15 requests per minute per IP addre
 
 | Method | Endpoint                              | Auth | Role            | Description                              |
 |--------|---------------------------------------|------|-----------------|------------------------------------------|
-| POST   | `/api/requests/:id/supervisor-approve` | Yes  | SUPERVISOR      | Approve (requires `accountId` in body)  |
-| POST   | `/api/requests/:id/supervisor-reject`  | Yes  | SUPERVISOR      | Reject (optional `comment`)             |
+| POST   | `/api/requests/:id/supervisor-approve` | Yes  | SUPERVISOR, FINANCIAL_ADMIN | Approve (requires `accountId` in body)  |
+| POST   | `/api/requests/:id/supervisor-reject`  | Yes  | SUPERVISOR, FINANCIAL_ADMIN | Reject (optional `comment`)             |
 | POST   | `/api/requests/:id/finance-approve`    | Yes  | FINANCIAL_ADMIN | Approve for payment                     |
 | POST   | `/api/requests/:id/finance-reject`     | Yes  | FINANCIAL_ADMIN | Reject (optional `comment`)             |
 | POST   | `/api/requests/:id/mark-paid`          | Yes  | FINANCIAL_ADMIN | Mark as paid (terminal state)           |
@@ -778,7 +779,7 @@ All monetary amounts are stored as `Decimal(12,2)`.
 
 | Technology             | Purpose                                    |
 |------------------------|--------------------------------------------|
-| React 18               | UI framework                               |
+| React 19               | UI framework                               |
 | TanStack Router        | File-based routing with type-safe navigation |
 | TanStack Query v5      | Server state management and caching        |
 | TanStack Table         | Sortable data tables                       |
@@ -840,6 +841,7 @@ ReimbursementManagement/
 |       |   |-- approval.service.ts # Approval workflow state machine
 |       |   |-- storage.service.ts # S3 upload, download, delete
 |       |   |-- account.service.ts # Supervisor account management
+|       |   |-- user.service.ts   # User listing and role/supervisor updates
 |       |-- middleware/
 |       |   |-- auth.ts           # JWT auth, CSRF, role gate, rate limit
 |       |   |-- error.ts          # Global error handler

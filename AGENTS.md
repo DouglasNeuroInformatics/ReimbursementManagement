@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding assistants when working with code in this repository.
 
 ## Development Commands
 
@@ -64,14 +64,14 @@ DRAFT → SUBMITTED → SUPERVISOR_APPROVED → FINANCE_APPROVED → PAID
 **Three user roles:**
 - `USER`: Create and manage own requests
 - `SUPERVISOR`: Review subordinates' requests, approve with billing account selection
-- `FINANCIAL_ADMIN`: Final approval, mark paid, manage users and accounts
+- `FINANCIAL_ADMIN`: Final approval, mark paid, manage users and accounts. Can also perform supervisor-stage approvals/rejections.
 
 ## Key Technical Details
 
 ### Backend Structure
 - **Entry point**: `backend/main.ts` - mounts Hono routes, initializes S3 bucket
 - **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts
-- **Services**: `backend/src/services/` - business logic layer
+- **Services**: `backend/src/services/` - business logic layer (auth, request, approval, storage, account, user)
 - **Middleware**: `backend/src/middleware/auth.ts` - JWT auth, CSRF protection (`X-Requested-With` header required), role gates
 - **Lib**: `backend/src/lib/` - Prisma client singleton, S3 client, JWT utilities, env validation
 
@@ -127,3 +127,42 @@ All monetary fields are `Decimal(12,2)`.
 - Only owners can edit/delete their requests
 - Supervisors can only approve requests from their subordinates (or anyone if no supervisor assigned)
 - Supervisor approval requires selecting a billing account
+
+### Environment Variables
+- `NODE_ENV`: Controls secure cookie flag (`secure: true` when `production`). Validated via Zod in `backend/src/lib/env.ts`.
+
+### Security & Quality Measures
+
+**Authentication & Session Security:**
+- Rate limit store has periodic cleanup of expired entries (prevents memory leaks)
+- Client IP detection uses `X-Real-IP` header with `X-Forwarded-For` fallback (`_getClientIp()` in auth middleware)
+- Cookies use `secure: true` in production via `cookieOptions()` helper (controlled by `NODE_ENV`)
+- Token refresh on the frontend uses a shared-promise mutex to prevent parallel refresh races (`frontend/src/lib/api.ts`)
+- Email addresses are normalized (`.toLowerCase().trim()`) on both registration and login
+
+**Authorization:**
+- `FINANCIAL_ADMIN` role can perform supervisor-stage approvals and rejections (added to `requireRole()` gates on supervisor routes)
+- `AuthUser.role` is typed as the Prisma `Role` enum throughout the backend (not a plain string)
+- Document uploads are server-side validated to only allow uploads when the request is in an editable status
+
+**Data Integrity:**
+- Request updates (`PATCH /api/requests/:id`) are wrapped in a Prisma `$transaction` for atomicity
+- Request deletion cleans up S3 objects before removing the database record
+- S3 document uploads use compensating deletes: if the `prisma.document.create()` fails after a successful S3 upload, the S3 object is deleted to prevent orphans
+- Query parameters on request listing are validated with Zod (`listQuerySchema`)
+
+**Database Indexes:**
+Performance indexes are defined in `schema.prisma`:
+- `Request`: `@@index([userId])`, `@@index([status])`, `@@index([supervisorId])`
+- `Document`: `@@index([requestId])`, `@@index([reimbursementItemId])`
+- `Approval`: `@@index([requestId])`
+- `Session`: `@@index([userId])`, `@@index([expiresAt])`
+
+**Frontend Quality:**
+- Dynamic form lists use stable UUID keys (`crypto.randomUUID()`) instead of array index keys
+- Form labels have proper `htmlFor`/`id` associations for accessibility
+- Document upload drop zone has `role="button"`, `tabIndex={0}`, `aria-label`, and keyboard event handler for accessibility
+- Route guards use safe type checks instead of unsafe `as` assertions
+
+**Infrastructure:**
+- nginx serves security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`
