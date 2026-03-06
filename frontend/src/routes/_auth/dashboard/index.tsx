@@ -6,6 +6,7 @@ import { PageSpinner } from '../../../components/ui/Spinner'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
 import type { RequestStatus } from '../../../types'
 import { fmtDate } from '../../../utils/dates'
+import { fmtCurrency, getRequestTotal } from '../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/dashboard/')({ component: DashboardPage })
 
@@ -57,6 +58,7 @@ function DashboardPage() {
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Title</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Status</th>
+                  <th className="text-right px-6 py-3 font-medium text-gray-500">Amount</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Date</th>
                 </tr>
               </thead>
@@ -68,6 +70,7 @@ function DashboardPage() {
                     </td>
                     <td className="px-6 py-3 text-gray-600">{r.type.replace('_', ' ')}</td>
                     <td className="px-6 py-3"><StatusBadge status={r.status} /></td>
+                    <td className="px-6 py-3 text-right font-medium text-gray-900">{(() => { const t = getRequestTotal(r); return t !== null ? fmtCurrency(t) : '—' })()}</td>
                     <td className="px-6 py-3 text-gray-500">{fmtDate(r.createdAt)}</td>
                   </tr>
                 ))}

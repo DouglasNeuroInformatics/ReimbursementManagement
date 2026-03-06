@@ -5,6 +5,7 @@ import { Button } from '../../../../components/ui/Button'
 import { Card, CardBody } from '../../../../components/ui/Card'
 import { PageSpinner } from '../../../../components/ui/Spinner'
 import { fmtDate } from '../../../../utils/dates'
+import { fmtCurrency, getRequestTotal } from '../../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/')({ component: RequestsListPage })
 
@@ -36,6 +37,7 @@ function RequestsListPage() {
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Title</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Status</th>
+                  <th className="text-right px-6 py-3 font-medium text-gray-500">Amount</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Submitted</th>
                   <th className="text-left px-6 py-3 font-medium text-gray-500">Docs</th>
                 </tr>
@@ -48,6 +50,7 @@ function RequestsListPage() {
                     </td>
                     <td className="px-6 py-3 text-gray-600">{r.type.replace(/_/g, ' ')}</td>
                     <td className="px-6 py-3"><StatusBadge status={r.status} /></td>
+                    <td className="px-6 py-3 text-right font-medium text-gray-900">{(() => { const t = getRequestTotal(r); return t !== null ? fmtCurrency(t) : '—' })()}</td>
                     <td className="px-6 py-3 text-gray-500">{fmtDate(r.submittedAt)}</td>
                     <td className="px-6 py-3 text-gray-500">{r._count?.documents ?? 0}</td>
                   </tr>
