@@ -1,12 +1,23 @@
-FROM node:22-alpine AS build
+FROM denoland/deno:2.3.3 AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+
+# Copy Deno config and lock file
+COPY deno.json deno.lock ./
+
+# Install dependencies (creates node_modules for Vite plugins)
+RUN deno install --frozen
+
+# Copy source code
 COPY . .
+
+# Set build environment variable
 ARG VITE_CURRENCY=CAD
 ENV VITE_CURRENCY=$VITE_CURRENCY
-RUN npm run build
 
+# Build the application
+RUN deno task build
+
+# Production stage: serve with Caddy
 FROM caddy:2-alpine
 COPY --from=build /app/dist /srv
 COPY Caddyfile /etc/caddy/Caddyfile

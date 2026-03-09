@@ -1,6 +1,6 @@
 # Reimbursement Management Platform
 
-A full-stack expense reimbursement and travel request management system with a multi-stage approval workflow. Built with React, Deno/Hono, PostgreSQL, and S3-compatible object storage, fully containerized with Docker Compose.
+A full-stack expense reimbursement and travel request management system with a multi-stage approval workflow. Built with React, Deno/Hono (backend + frontend), PostgreSQL, and S3-compatible object storage, fully containerized with Docker Compose.
 
 ---
 
@@ -805,6 +805,7 @@ All monetary amounts are stored as `Decimal(12,2)`.
 | TanStack Form          | Form state management                      |
 | Tailwind CSS v4        | Utility-first styling                      |
 | Vite                   | Build tool and dev server                  |
+| Deno 2.3+              | JavaScript/TypeScript runtime (dev + build)|
 | Zod                    | Schema validation                          |
 
 ### Backend
@@ -871,10 +872,10 @@ ReimbursementManagement/
 |           |-- env.ts            # Environment config with Zod validation
 |
 |-- frontend/
-    |-- Dockerfile                # Multi-stage build (node build + Caddy)
+    |-- Dockerfile                # Multi-stage build (deno build + Caddy)
     |-- Caddyfile                 # Reverse proxy + SPA fallback config
-    |-- package.json              # Dependencies and scripts
-    |-- vite.config.ts            # Vite + Tailwind + TanStack Router
+    |-- deno.json                 # Deno config, tasks, and imports
+    |-- vite.config.mts           # Vite + Tailwind + TanStack Router (Deno-compatible)
     |-- src/
         |-- main.tsx              # React entry point
         |-- types.ts              # All TypeScript domain types

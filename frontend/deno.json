@@ -1,0 +1,25 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "dev": "deno run -A --watch npm:vite",
+    "build": "deno run -A npm:vite build",
+    "preview": "deno run -A npm:vite preview"
+  },
+  "imports": {
+    "vite": "npm:vite@^7.3.0",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^5.1.0",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.0",
+    "@tanstack/router-plugin": "npm:@tanstack/router-plugin@^1.166.0",
+    "@tanstack/react-form": "npm:@tanstack/react-form@^1.28.0",
+    "@tanstack/react-query": "npm:@tanstack/react-query@^5.90.0",
+    "@tanstack/react-router": "npm:@tanstack/react-router@^1.166.0",
+    "@tanstack/react-table": "npm:@tanstack/react-table@^8.21.0",
+    "clsx": "npm:clsx@^2.1.1",
+    "react": "npm:react@^19.2.0",
+    "react-dom": "npm:react-dom@^19.2.0",
+    "tailwindcss": "npm:tailwindcss@^4.2.0",
+    "@types/react": "npm:@types/react@^19.2.0",
+    "@types/react-dom": "npm:@types/react-dom@^19.2.0",
+    "typescript": "npm:typescript@^5.9.0"
+  }
+}

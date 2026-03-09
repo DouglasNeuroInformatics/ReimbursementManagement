@@ -81,9 +81,9 @@ services:
       - "8000:8000"
 
   web:
-    image: node:22-alpine
+    image: denoland/deno:2.3.3
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+    command: deno task dev -- --host 0.0.0.0 --port 3000
     environment:
       VITE_API_BASE: ""
       VITE_CURRENCY: ${CURRENCY:-CAD}
