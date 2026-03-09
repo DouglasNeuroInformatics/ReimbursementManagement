@@ -3,13 +3,14 @@ import { getCookie } from "hono/cookie";
 import { verifyAccessToken } from "../lib/jwt.ts";
 import { AppError } from "./error.ts";
 import type { AuthUser, HonoEnv } from "../types.ts";
+import type { Role } from "../generated/prisma/client.ts";
 
 export const authenticate: MiddlewareHandler<HonoEnv> = async (c, next) => {
   const token = getCookie(c, "access_token");
   if (!token) throw new AppError(401, "Authentication required");
   try {
     const payload = await verifyAccessToken(token);
-    c.set("user", { id: payload.sub, role: payload.role, email: payload.email });
+    c.set("user", { id: payload.sub, role: payload.role as Role, email: payload.email });
   } catch {
     throw new AppError(401, "Invalid or expired token");
   }

@@ -11,7 +11,6 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { DateInput } from '../../../../components/ui/DateInput'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { PageSpinner } from '../../../../components/ui/Spinner'
-import type { Request } from '../../../../types'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/edit')({ component: EditRequestPage })
 

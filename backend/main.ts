@@ -49,7 +49,26 @@ api.route("/users", userRoutes);
 
 app.route("/api", api);
 
-await initBucket();
+// Initialize S3 bucket with retry logic for development
+async function initBucketWithRetry(maxRetries = 10): Promise<void> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await initBucket();
+      console.log("S3 bucket initialized successfully");
+      return;
+    } catch (err) {
+      const lastRetry = i === maxRetries - 1;
+      if (lastRetry) {
+        console.error(`Failed to initialize S3 bucket after ${maxRetries} attempts:`, err);
+        throw err;
+      }
+      console.warn(`S3 not ready yet (attempt ${i + 1}/${maxRetries}), retrying in 2 seconds...`);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+}
+
+await initBucketWithRetry();
 
 console.log(`API server starting on port ${env.PORT}`);
 Deno.serve({ port: env.PORT }, app.fetch);

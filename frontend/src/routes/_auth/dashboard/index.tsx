@@ -10,8 +10,6 @@ import { fmtCurrency, getRequestTotal } from '../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/dashboard/')({ component: DashboardPage })
 
-const STATUS_ORDER: RequestStatus[] = ['DRAFT', 'SUBMITTED', 'SUPERVISOR_APPROVED', 'SUPERVISOR_REJECTED', 'FINANCE_APPROVED', 'FINANCE_REJECTED', 'PAID']
-
 function DashboardPage() {
   const { user } = useAuth()
   const { data: requests = [], isLoading } = useRequests({ scope: 'own' })
