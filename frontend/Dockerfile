@@ -5,7 +5,7 @@ WORKDIR /app
 COPY deno.json deno.lock ./
 
 # Install dependencies (creates node_modules for Vite plugins)
-RUN deno install --frozen
+RUN deno install
 
 # Copy source code
 COPY . .
