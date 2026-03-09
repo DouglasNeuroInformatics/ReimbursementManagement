@@ -1,6 +1,6 @@
 import type { Request } from '../types'
 
-const CURRENCY_CODE = import.meta.env.VITE_CURRENCY || 'CAD'
+const CURRENCY_CODE = (import.meta as any).env?.VITE_CURRENCY || 'CAD'
 
 const formatter = new Intl.NumberFormat('en-CA', {
   style: 'currency',

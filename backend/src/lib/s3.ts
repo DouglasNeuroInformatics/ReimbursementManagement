@@ -50,7 +50,6 @@ export async function initBucket(): Promise<void> {
     await s3.send(new HeadBucketCommand({ Bucket: S3_BUCKET }));
   } catch {
     await s3.send(new CreateBucketCommand({ Bucket: S3_BUCKET }));
-    console.log(`Created S3 bucket: ${S3_BUCKET}`);
   }
 }
 
