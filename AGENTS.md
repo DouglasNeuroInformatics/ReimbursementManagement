@@ -27,12 +27,12 @@ deno task db:push      # Push schema without migration
 deno task db:migrate:deploy  # Deploy migrations (production)
 ```
 
-### Frontend (Node.js)
+### Frontend (Deno)
 ```bash
 cd frontend
-npm run dev      # Vite dev server (HMR)
-npm run build    # Production build
-npm run preview  # Preview production build
+deno task dev      # Vite dev server (HMR)
+deno task build    # Production build
+deno task preview  # Preview production build
 ```
 
 ### Database Access
@@ -49,7 +49,7 @@ docker compose exec db psql -U app -d reimbursement -c "SELECT * FROM \"User\";"
 This is a **multi-stage approval workflow system** for expense reimbursements and travel requests.
 
 **Stack:**
-- **Frontend**: React 19, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4, Vite
+- **Frontend**: React 19, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4, Vite, Deno 2.3+
 - **Backend**: Deno 2.3, Hono v4, Prisma v6, PostgreSQL 16
 - **Storage**: RustFS (S3-compatible)
 - **Infrastructure**: Docker Compose, Caddy reverse proxy

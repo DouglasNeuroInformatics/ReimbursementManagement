@@ -96,7 +96,7 @@ A full-stack expense reimbursement and travel request management system with a m
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) v2+
-- For development: [Node.js 22+](https://nodejs.org/) and [Deno 2.3+](https://deno.land/)
+- For local development: [Deno 2.3+](https://deno.land/) (frontend and backend)
 
 ---
 
@@ -116,11 +116,11 @@ A full-stack expense reimbursement and travel request management system with a m
 
 3. **Start all services:**
 
-   ```bash
-   docker compose up -d
-   ```
+    ```bash
+    docker compose up -d
+    ```
 
-   This builds the frontend (multi-stage: npm build then Caddy), builds the backend Docker image, runs database migrations automatically, then starts the API and web server.
+    This builds the frontend (multi-stage: Deno build then Caddy), builds the backend Docker image, runs database migrations automatically, then starts the API and web server.
 
 4. **Access the application** at [http://localhost:3000](http://localhost:3000).
 
@@ -143,6 +143,19 @@ docker compose -f docker-compose.dev.yml up -d
 - Backend: auto-restarts on file changes via `deno run --watch`
 - PostgreSQL: accessible at `localhost:5432` for direct access
 - RustFS console: [http://localhost:9001](http://localhost:9001)
+
+### Frontend Development
+
+Run the frontend directly with Deno (requires Deno 2.3+):
+
+```bash
+cd frontend
+deno task dev      # Vite dev server with HMR on port 3000
+deno task build    # Production build to dist/
+deno task preview  # Preview production build locally
+```
+
+Deno automatically resolves npm dependencies via the `deno.json` import map. A `deno.lock` file is generated for reproducible builds.
 
 Development defaults are pre-configured -- no `.env` file is required (defaults like `devpassword` are used).
 
@@ -808,6 +821,8 @@ All monetary amounts are stored as `Decimal(12,2)`.
 | Deno 2.3+              | JavaScript/TypeScript runtime (dev + build)|
 | Zod                    | Schema validation                          |
 
+**Note**: The frontend uses Deno 2.3+ as the runtime for both development and production builds. Dependencies are managed via `deno.json` import maps, eliminating the need for `package.json` and `node_modules`.
+
 ### Backend
 
 | Technology             | Purpose                                    |
@@ -874,7 +889,8 @@ ReimbursementManagement/
 |-- frontend/
     |-- Dockerfile                # Multi-stage build (deno build + Caddy)
     |-- Caddyfile                 # Reverse proxy + SPA fallback config
-    |-- deno.json                 # Deno config, tasks, and imports
+    |-- deno.json                 # Deno config, tasks (dev/build/preview), and imports
+    |-- deno.lock                 # Reproducible dependency lock file
     |-- vite.config.mts           # Vite + Tailwind + TanStack Router (Deno-compatible)
     |-- src/
         |-- main.tsx              # React entry point
