@@ -9,6 +9,7 @@ import { Textarea } from '../../../../components/ui/Textarea'
 import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { DateInput } from '../../../../components/ui/DateInput'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
+import { PolicyDisplay } from '../../../../components/forms/PolicyDisplay'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/new/reimbursement')({ component: NewReimbursementPage })
 
@@ -121,6 +122,7 @@ function NewReimbursementPage() {
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
+      <PolicyDisplay category="general_expenses" />
       <Card>
         <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
         <CardBody className="space-y-4">

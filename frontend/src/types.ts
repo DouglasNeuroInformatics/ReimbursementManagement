@@ -128,3 +128,38 @@ export interface SupervisorAccount {
   createdAt: string
   updatedAt: string
 }
+
+// Policy types
+export type ExpenseCategory =
+  | 'conference_registration'
+  | 'car_rental'
+  | 'gas'
+  | 'taxi'
+  | 'parking'
+  | 'mileage'
+  | 'airfare'
+  | 'bus'
+  | 'train'
+  | 'accommodations'
+  | 'meals'
+  | 'other'
+
+export type PerDiemZone = 'CANADA' | 'OUTSIDE_CANADA'
+
+export interface PerDiemRates {
+  zone: PerDiemZone
+  total: number
+  breakfast: number
+  lunch: number
+  dinner: number
+}
+
+export interface ExpensePolicy {
+  id: string
+  title: string
+  category: string
+  description: string
+  requirements: string[]
+  documentation: string[]
+  notes?: string
+}
