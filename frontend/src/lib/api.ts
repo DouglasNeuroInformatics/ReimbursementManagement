@@ -10,17 +10,13 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_HEADERS: Record<string, string> = {
-  'X-Requested-With': 'XMLHttpRequest',
-}
-
 let _refreshPromise: Promise<boolean> | null = null
 
 async function _doRefresh(): Promise<boolean> {
   try {
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
-      headers: BASE_HEADERS,
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
     })
     return res.ok
@@ -30,7 +26,13 @@ async function _doRefresh(): Promise<boolean> {
 }
 
 async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const headers: Record<string, string> = { ...BASE_HEADERS }
+  const headers: Record<string, string> = {}
+  
+  // Don't send CSRF header on auth endpoints (login/register/refresh)
+  if (!url.includes('/api/auth/') && !url.includes('/api/auth')) {
+    headers['X-Requested-With'] = 'XMLHttpRequest'
+  }
+  
   if (init.body && typeof init.body === 'string') {
     headers['Content-Type'] = 'application/json'
   }

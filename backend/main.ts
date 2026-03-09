@@ -20,13 +20,32 @@ app.onError(errorHandler);
 app.get("/healthz", (c) => c.json({ status: "ok" }));
 
 const api = new Hono();
-api.use("*", csrfProtect);
+
+// Auth routes (no CSRF - public endpoints)
 api.route("/auth", authRoutes);
+
+// Supervisor accounts (no CSRF - only FINANCIAL_ADMIN can access, role check in route)
+api.route("/supervisors", accountRoutes);
+
+// Protected routes (require CSRF)
+api.use("*", async (c, next) => {
+  const path = c.req.path;
+  // Allow auth and supervisors paths without CSRF
+  if (path.startsWith("/api/auth") || path.startsWith("/api/supervisors")) {
+    return next();
+  }
+  // Apply CSRF check for all other paths
+  const xrw = c.req.header("X-Requested-With");
+  if (xrw !== "XMLHttpRequest") {
+    return c.json({ error: "CSRF check failed: missing X-Requested-With header" }, 403);
+  }
+  await next();
+});
+
 api.route("/requests", requestRoutes);
 api.route("/requests", approvalRoutes);
 api.route("/requests", documentRoutes);
 api.route("/users", userRoutes);
-api.route("/supervisors", accountRoutes);
 
 app.route("/api", api);
 
