@@ -86,17 +86,17 @@ A full-stack expense reimbursement and travel request management system with a m
 | Service   | Image                    | Purpose                                      | Exposed Port |
 |-----------|--------------------------|----------------------------------------------|--------------|
 | `web`     | caddy:2-alpine           | Serves frontend SPA, reverse-proxies `/api/` | 3000         |
-| `api`     | denoland/deno:2.3.3      | REST API server                              | 8000         |
+| `api`     | denoland/deno:2.7.1      | REST API server                              | 8000         |
 | `db`      | postgres:16-alpine       | Relational database                          | --           |
 | `rustfs`  | rustfs/rustfs:latest     | S3-compatible object storage for documents   | 9000, 9001   |
-| `migrate` | denoland/deno:2.3.3      | Runs Prisma migrations on startup, then exits| --           |
+| `migrate` | denoland/deno:2.7.1      | Runs Prisma migrations on startup, then exits| --           |
 
 ---
 
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) v2+
-- For local development: [Deno 2.3+](https://deno.land/) (frontend and backend)
+- For local development: [Deno 2.7.1+](https://deno.land/) (frontend and backend)
 
 ---
 
@@ -146,7 +146,7 @@ docker compose -f docker-compose.dev.yml up -d
 
 ### Frontend Development
 
-Run the frontend directly with Deno (requires Deno 2.3+):
+Run the frontend directly with Deno (requires Deno 2.7.1+):
 
 ```bash
 cd frontend
@@ -811,15 +811,15 @@ All monetary amounts are stored as `Decimal(12,2)`.
 
 | Technology             | Purpose                                    |
 |------------------------|--------------------------------------------|
-| React 19               | UI framework                               |
-| TanStack Router        | File-based routing with type-safe navigation |
-| TanStack Query v5      | Server state management and caching        |
-| TanStack Table         | Sortable data tables                       |
-| TanStack Form          | Form state management                      |
-| Tailwind CSS v4        | Utility-first styling                      |
-| Vite                   | Build tool and dev server                  |
-| Deno 2.3+              | JavaScript/TypeScript runtime (dev + build)|
-| Zod                    | Schema validation                          |
+| React 19.2.4               | UI framework                               |
+| TanStack Router v1.166.3        | File-based routing with type-safe navigation |
+| TanStack Query v5.90.0      | Server state management and caching        |
+| TanStack Table v8.21.3         | Sortable data tables                       |
+| TanStack Form v1.28.4          | Form state management                      |
+| Tailwind CSS v4.2.1        | Utility-first styling                      |
+| Vite v7.3.1                   | Build tool and dev server                  |
+| Deno 2.7.1              | JavaScript/TypeScript runtime (dev + build)|
+| Zod v3.24.4                    | Schema validation                          |
 
 **Note**: The frontend uses Deno 2.3+ as the runtime for both development and production builds. Dependencies are managed via `deno.json` import maps, eliminating the need for `package.json` and `node_modules`.
 
@@ -827,13 +827,13 @@ All monetary amounts are stored as `Decimal(12,2)`.
 
 | Technology             | Purpose                                    |
 |------------------------|--------------------------------------------|
-| Deno 2.3               | JavaScript/TypeScript runtime              |
-| Hono v4                | Web framework                              |
-| Prisma v6              | ORM with PostgreSQL adapter                |
-| jose v5                | JWT creation and verification (HS256)      |
+| Deno 2.7.1               | JavaScript/TypeScript runtime              |
+| Hono v4.12.5                | Web framework                              |
+| Prisma v7.4.2              | ORM with PostgreSQL adapter                |
+| jose v6.2.0                | JWT creation and verification (HS256)      |
 | argon2                 | Password hashing                           |
 | AWS SDK v3             | S3-compatible storage client               |
-| Zod v3                 | Request validation                         |
+| Zod v3.24.4                 | Request validation                         |
 
 ### Infrastructure
 
