@@ -15,7 +15,7 @@ docker compose up -d
 
 ### Backend (Deno)
 ```bash
-# Run backend directly (requires Deno 2.3+, .env file)
+# Run backend directly (requires Deno 2.7.1+, .env file)
 deno task dev          # Hot-reload development
 deno task start        # Production run
 deno task test         # Run tests
@@ -35,6 +35,8 @@ deno task build    # Production build
 deno task preview  # Preview production build
 ```
 
+**Note**: Requires Deno 2.7.1+ with npm registry support for Vite, React, and TanStack libraries.
+
 ### Database Access
 ```bash
 # Direct PostgreSQL access
@@ -49,8 +51,8 @@ docker compose exec db psql -U app -d reimbursement -c "SELECT * FROM \"User\";"
 This is a **multi-stage approval workflow system** for expense reimbursements and travel requests.
 
 **Stack:**
-- **Frontend**: React 19, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4, Vite, Deno 2.3+
-- **Backend**: Deno 2.3, Hono v4, Prisma v6, PostgreSQL 16
+- **Frontend**: React 19.2.4, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4.2.1, Vite, Deno 2.7.1
+- **Backend**: Deno 2.7.1, Hono v4.12.5, Prisma v7.4.2, PostgreSQL 16
 - **Storage**: RustFS (S3-compatible)
 - **Infrastructure**: Docker Compose, Caddy reverse proxy
 
