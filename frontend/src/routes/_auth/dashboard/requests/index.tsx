@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useRequests } from '../../../../hooks/useRequests'
 import { StatusBadge } from '../../../../components/ui/Badge'
 import { Button } from '../../../../components/ui/Button'
@@ -11,6 +11,7 @@ export const Route = createFileRoute('/_auth/dashboard/requests/')({ component: 
 
 function RequestsListPage() {
   const { data: requests = [], isLoading } = useRequests({ scope: 'own' })
+  const navigate = useNavigate()
 
   if (isLoading) return <PageSpinner />
 
@@ -44,7 +45,14 @@ function RequestsListPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {requests.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => {
+                      if (e.target instanceof HTMLAnchorElement) return;
+                      navigate({ to: '/dashboard/requests/$requestId', params: { requestId: r.id } });
+                    }}
+                  >
                     <td className="px-6 py-3">
                       <Link to="/dashboard/requests/$requestId" params={{ requestId: r.id }} className="text-blue-600 hover:underline font-medium">{r.title}</Link>
                     </td>
