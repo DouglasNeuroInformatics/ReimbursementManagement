@@ -7,7 +7,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { StatusBadge } from '../ui/Badge'
 import type { Request } from '../../types'
 import { fmtDate } from '../../utils/dates'
@@ -24,6 +24,7 @@ interface Props {
 
 export function RequestsTable({ data, linkTo, showUser = false, showAccount = false }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
+  const navigate = useNavigate()
 
   const columns = [
     ...(showUser ? [col.accessor((r) => `${r.user.firstName} ${r.user.lastName}`, { id: 'user', header: 'User' })] : []),
@@ -98,7 +99,15 @@ export function RequestsTable({ data, linkTo, showUser = false, showAccount = fa
         </thead>
         <tbody className="divide-y divide-gray-50">
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-50">
+            <tr
+              key={row.id}
+              className="hover:bg-gray-50 cursor-pointer"
+              onClick={(e) => {
+                // Don't navigate if clicking on a link (already handled by Link component)
+                if (e.target instanceof HTMLAnchorElement) return;
+                navigate({ to: linkTo(row.original) as never });
+              }}
+            >
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-4 py-3">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
