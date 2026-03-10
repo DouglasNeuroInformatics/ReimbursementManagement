@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useRequests } from '../../../hooks/useRequests'
 import { useAuth } from '../../../hooks/useAuth'
 import { StatusBadge } from '../../../components/ui/Badge'
@@ -13,6 +13,7 @@ export const Route = createFileRoute('/_auth/dashboard/')({ component: Dashboard
 function DashboardPage() {
   const { user } = useAuth()
   const { data: requests = [], isLoading } = useRequests({ scope: 'own' })
+  const navigate = useNavigate()
 
   const counts = requests.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1
@@ -62,7 +63,14 @@ function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {requests.slice(0, 5).map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
+                  <tr
+                    key={r.id}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => {
+                      if (e.target instanceof HTMLAnchorElement) return;
+                      navigate({ to: '/dashboard/requests/$requestId', params: { requestId: r.id } });
+                    }}
+                  >
                     <td className="px-6 py-3">
                       <Link to="/dashboard/requests/$requestId" params={{ requestId: r.id }} className="text-blue-600 hover:underline font-medium">{r.title}</Link>
                     </td>
