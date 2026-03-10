@@ -5,11 +5,11 @@
     "npm:@aws-sdk/s3-request-presigner@3": "3.1003.0",
     "npm:@node-rs/argon2@2": "2.0.2",
     "npm:@prisma/adapter-pg@7": "7.4.2",
-    "npm:@prisma/client@7": "7.4.2",
+    "npm:@prisma/client@7": "7.4.2_prisma@7.4.2__typescript@5.9.3_typescript@5.9.3",
     "npm:hono@4": "4.12.5",
     "npm:jose@6": "6.2.0",
     "npm:pg@8": "8.20.0",
-    "npm:prisma@7": "7.4.2",
+    "npm:prisma@7": "7.4.2_typescript@5.9.3",
     "npm:zod@3": "3.25.76"
   },
   "npm": {
@@ -719,10 +719,16 @@
     "@prisma/client-runtime-utils@7.4.2": {
       "integrity": "sha512-cID+rzOEb38VyMsx5LwJMEY4NGIrWCNpKu/0ImbeooQ2Px7TI+kOt7cm0NelxUzF2V41UVVXAmYjANZQtCu1/Q=="
     },
-    "@prisma/client@7.4.2": {
+    "@prisma/client@7.4.2_prisma@7.4.2__typescript@5.9.3_typescript@5.9.3": {
       "integrity": "sha512-ts2mu+cQHriAhSxngO3StcYubBGTWDtu/4juZhXCUKOwgh26l+s4KD3vT2kMUzFyrYnll9u/3qWrtzRv9CGWzA==",
       "dependencies": [
-        "@prisma/client-runtime-utils"
+        "@prisma/client-runtime-utils",
+        "prisma",
+        "typescript"
+      ],
+      "optionalPeers": [
+        "prisma",
+        "typescript"
       ]
     },
     "@prisma/config@7.4.2": {
@@ -740,7 +746,7 @@
     "@prisma/debug@7.4.2": {
       "integrity": "sha512-aP7qzu+g/JnbF6U69LMwHoUkELiserKmWsE2shYuEpNUJ4GrtxBCvZwCyCBHFSH2kLTF2l1goBlBh4wuvRq62w=="
     },
-    "@prisma/dev@0.20.0_@electric-sql+pglite@0.3.15_hono@4.11.4": {
+    "@prisma/dev@0.20.0_@electric-sql+pglite@0.3.15_hono@4.11.4_typescript@5.9.3": {
       "integrity": "sha512-ovlBYwWor0OzG+yH4J3Ot+AneD818BttLA+Ii7wjbcLHUrnC4tbUPVGyNd3c/+71KETPKZfjhkTSpdS15dmXNQ==",
       "dependencies": [
         "@electric-sql/pglite",
@@ -1581,7 +1587,7 @@
     "postgres@3.4.7": {
       "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
     },
-    "prisma@7.4.2": {
+    "prisma@7.4.2_typescript@5.9.3": {
       "integrity": "sha512-2bP8Ruww3Q95Z2eH4Yqh4KAENRsj/SxbdknIVBfd6DmjPwmpsC4OVFMLOeHt6tM3Amh8ebjvstrUz3V/hOe1dA==",
       "dependencies": [
         "@prisma/config",
@@ -1589,7 +1595,11 @@
         "@prisma/engines",
         "@prisma/studio-core",
         "mysql2",
-        "postgres"
+        "postgres",
+        "typescript"
+      ],
+      "optionalPeers": [
+        "typescript"
       ],
       "scripts": true,
       "bin": true
@@ -1676,8 +1686,18 @@
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
     },
-    "valibot@1.2.0": {
-      "integrity": "sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg=="
+    "typescript@5.9.3": {
+      "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+      "bin": true
+    },
+    "valibot@1.2.0_typescript@5.9.3": {
+      "integrity": "sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==",
+      "dependencies": [
+        "typescript"
+      ],
+      "optionalPeers": [
+        "typescript"
+      ]
     },
     "which@2.0.2": {
       "integrity": "sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==",
