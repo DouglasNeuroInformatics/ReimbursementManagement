@@ -6,6 +6,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Role, type RequestType, type RequestStatus } from "../src/generated/prisma/client.ts";
 import { hash } from "@node-rs/argon2";
 import { signAccessToken } from "../src/lib/jwt.ts";
+import app from "../main.ts";
 
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
 if (!DATABASE_URL) {
@@ -25,15 +26,19 @@ export interface TestUser {
   lastName: string;
   password: string;
   role: Role;
+  supervisorId: string | null;
   accessToken: string;
   refreshToken: string;
   cookieHeader: string;
 }
 
+import { initBucket } from "../src/lib/s3.ts";
+
 /**
  * Clean all data from database (use with caution in tests)
  */
 export async function cleanupDatabase(): Promise<void> {
+  try { await initBucket(); } catch {}
   await prisma.approval.deleteMany();
   await prisma.document.deleteMany();
   await prisma.travelExpenseItem.deleteMany();
@@ -97,6 +102,7 @@ export async function createTestUser(
     lastName: user.lastName,
     password,
     role: user.role,
+    supervisorId: user.supervisorId,
     accessToken,
     refreshToken,
     cookieHeader,
@@ -278,6 +284,30 @@ export async function createApproval(
 }
 
 /**
+ * Create a document
+ */
+export async function createDocument(
+  requestId: string,
+  filename: string,
+  contentType: string,
+  s3Key: string,
+  uploadedById: string,
+  reimbursementItemId?: string,
+) {
+  return await prisma.document.create({
+    data: {
+      request: { connect: { id: requestId } },
+      filename,
+      contentType,
+      s3Key,
+      uploadedBy: uploadedById,
+      sizeBytes: 1024,
+      ...(reimbursementItemId ? { reimbursementItem: { connect: { id: reimbursementItemId } } } : {}),
+    },
+  });
+}
+
+/**
  * Helper to make authenticated API requests
  */
 export interface RequestOptions {
@@ -340,14 +370,16 @@ export async function makeRequest(
   requestHeaders.set("X-Requested-With", "XMLHttpRequest");
 
   if (body && method !== "GET") {
-    requestHeaders.set("Content-Type", "application/json");
+    if (!(body instanceof FormData)) {
+      requestHeaders.set("Content-Type", "application/json");
+    }
   }
 
-  const url = `${baseUrl}${path}`;
-  const response = await fetch(url, {
+  const url = `http://localhost/api${path}`;
+  const response = await app.request(url, {
     method,
     headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
+    body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
   });
 
   const responseBody = await response.text();
@@ -356,6 +388,10 @@ export async function makeRequest(
     parsedBody = responseBody ? JSON.parse(responseBody) : null;
   } catch {
     parsedBody = responseBody;
+  }
+
+  if (response.status === 500) {
+    console.error("500 Error:", parsedBody);
   }
 
   return {

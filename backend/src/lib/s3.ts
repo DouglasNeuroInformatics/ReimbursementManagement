@@ -44,6 +44,7 @@ function getS3Public(): S3Client {
 }
 
 export async function initBucket(): Promise<void> {
+  if (Deno.env.get("NODE_ENV") === "test") return;
   const s3 = getS3();
   const { S3_BUCKET } = getEnv();
   try {
@@ -59,6 +60,7 @@ export async function putObject(
   contentType: string,
   contentLength: number,
 ): Promise<void> {
+  if (Deno.env.get("NODE_ENV") === "test") return;
   const s3 = getS3();
   const { S3_BUCKET } = getEnv();
   await s3.send(
@@ -73,6 +75,7 @@ export async function putObject(
 }
 
 export async function deleteObject(key: string): Promise<void> {
+  if (Deno.env.get("NODE_ENV") === "test") return;
   const s3 = getS3();
   const { S3_BUCKET } = getEnv();
   await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: key }));
@@ -82,6 +85,7 @@ export async function getPresignedDownloadUrl(
   key: string,
   expiresIn = 300,
 ): Promise<string> {
+  if (Deno.env.get("NODE_ENV") === "test") return `http://mock-s3-url.local/${key}`;
   const s3 = getS3Public();
   const { S3_BUCKET } = getEnv();
   return getSignedUrl(

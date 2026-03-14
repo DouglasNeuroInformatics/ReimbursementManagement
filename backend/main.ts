@@ -49,6 +49,8 @@ api.route("/users", userRoutes);
 
 app.route("/api", api);
 
+export default app;
+
 // Initialize S3 bucket with retry logic for development
 async function initBucketWithRetry(maxRetries = 10): Promise<void> {
   for (let i = 0; i < maxRetries; i++) {
@@ -68,7 +70,8 @@ async function initBucketWithRetry(maxRetries = 10): Promise<void> {
   }
 }
 
-await initBucketWithRetry();
-
-console.log(`API server starting on port ${env.PORT}`);
-Deno.serve({ port: env.PORT }, app.fetch);
+if (import.meta.main) {
+  await initBucketWithRetry();
+  console.log(`API server starting on port ${env.PORT}`);
+  Deno.serve({ port: env.PORT }, app.fetch);
+}
