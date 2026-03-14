@@ -21,7 +21,7 @@ router.post(
   "/:id/supervisor-approve",
   requireRole("SUPERVISOR", "FINANCIAL_ADMIN"),
   async (c) => {
-    const { id: supervisorId } = c.get("user");
+    const { id: supervisorId, role } = c.get("user");
     const body = await c.req.json();
     const { accountId, comment } = supervisorApproveSchema.parse(body);
     const request = await approvalService.supervisorApprove(
@@ -29,6 +29,7 @@ router.post(
       supervisorId,
       accountId,
       comment,
+      role
     );
     return c.json({ request });
   },
@@ -38,10 +39,10 @@ router.post(
   "/:id/supervisor-reject",
   requireRole("SUPERVISOR", "FINANCIAL_ADMIN"),
   async (c) => {
-    const { id: supervisorId } = c.get("user");
+    const { id: supervisorId, role } = c.get("user");
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
-    await approvalService.supervisorReject(c.req.param("id"), supervisorId, comment);
+    await approvalService.supervisorReject(c.req.param("id"), supervisorId, comment, role);
     return c.json({ success: true });
   },
 );

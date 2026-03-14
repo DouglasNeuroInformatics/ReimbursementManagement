@@ -6,6 +6,7 @@ export async function supervisorApprove(
   supervisorId: string,
   accountId: string,
   comment?: string,
+  actorRole: "USER" | "SUPERVISOR" | "FINANCIAL_ADMIN" = "SUPERVISOR",
 ) {
   const request = await prisma.request.findUnique({
     where: { id: requestId },
@@ -15,7 +16,7 @@ export async function supervisorApprove(
   if (request.status !== "SUBMITTED") {
     throw new AppError(400, `Cannot approve request with status: ${request.status}`);
   }
-  if (request.user.supervisorId && request.user.supervisorId !== supervisorId) {
+  if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
     throw new AppError(403, "This request is assigned to a different supervisor");
   }
 
@@ -63,6 +64,7 @@ export async function supervisorReject(
   requestId: string,
   supervisorId: string,
   comment?: string,
+  actorRole: "USER" | "SUPERVISOR" | "FINANCIAL_ADMIN" = "SUPERVISOR",
 ) {
   const request = await prisma.request.findUnique({
     where: { id: requestId },
@@ -72,7 +74,7 @@ export async function supervisorReject(
   if (request.status !== "SUBMITTED") {
     throw new AppError(400, `Cannot reject request with status: ${request.status}`);
   }
-  if (request.user.supervisorId && request.user.supervisorId !== supervisorId) {
+  if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
     throw new AppError(403, "This request is assigned to a different supervisor");
   }
 
