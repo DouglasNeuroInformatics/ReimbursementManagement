@@ -122,7 +122,7 @@ function NewReimbursementPage() {
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
-      <PolicyDisplay category="general_expenses" />
+      <PolicyDisplay policyIds={['eligibility', 'receipts', 'equipment']} />
       <Card>
         <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
         <CardBody className="space-y-4">
