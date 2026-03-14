@@ -64,7 +64,7 @@ function NewTravelAdvancePage() {
     <div className="max-w-2xl space-y-5">
       <h1 className="text-2xl font-bold text-gray-900">Travel Advance</h1>
       {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
-      <PolicyDisplay category="travel_expenses" />
+      <PolicyDisplay policyIds={['advance_request', 'eligibility', 'meals', 'accommodations', 'mileage']} />
       <Card><CardHeader><span className="font-semibold">Request Details</span></CardHeader>
         <CardBody className="space-y-4">
           <Input label="Title" value={form.title} onChange={set('title')} required />
