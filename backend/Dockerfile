@@ -1,4 +1,4 @@
-FROM denoland/deno:2.3.3
+FROM docker.io/denoland/deno:2.3.3
 WORKDIR /app
 COPY deno.json deno.lock* ./
 COPY prisma/ ./prisma/

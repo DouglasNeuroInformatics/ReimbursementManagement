@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: docker.io/postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: reimbursement
@@ -15,7 +15,7 @@ services:
       retries: 10
 
   rustfs:
-    image: rustfs/rustfs:latest
+    image: docker.io/rustfs/rustfs:latest
     restart: unless-stopped
     environment:
       RUSTFS_VOLUMES: /data
