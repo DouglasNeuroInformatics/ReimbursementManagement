@@ -3,9 +3,15 @@
 # Set error handling to exit on any failure
 set -e
 
+# Store the project root directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Cleanup function that runs on exit
 cleanup() {
     echo "Cleaning up test infrastructure..."
+    # Always return to project root before running docker compose
+    cd "$SCRIPT_DIR"
     # Always specify project gracefully to avoid matching global compose
     docker compose -f docker-compose.dev.yml stop db rustfs
     echo "Cleanup complete."
@@ -24,24 +30,20 @@ until docker compose -f docker-compose.dev.yml exec -T db pg_isready -U app -d r
   sleep 2
 done
 echo "Database is ready!"
+# Give database a moment to fully accept connections
+sleep 2
 
 echo "Ensuring test database exists..."
 # Use -T to disable TTY allocation which can cause errors in CI or scripts
 docker compose -f docker-compose.dev.yml exec -T db psql -U app -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'reimbursement_test'" | grep -q 1 || docker compose -f docker-compose.dev.yml exec -T db psql -U app -d postgres -c "CREATE DATABASE reimbursement_test"
 
 echo "Pushing Prisma schema to test database..."
-cd backend
-deno run -A --env-file=.env.test npm:prisma@^7 db push --accept-data-loss
-cd ..
+(cd backend && deno run -A --env-file=.env.test npm:prisma@^7 db push --accept-data-loss)
 
 echo "Running backend tests..."
-cd backend
-deno task test
-cd ..
+(cd backend && deno task test)
 
 echo "Running frontend tests..."
-cd frontend
-deno task test
-cd ..
+(cd frontend && deno task test)
 
 echo "Tests completed successfully."

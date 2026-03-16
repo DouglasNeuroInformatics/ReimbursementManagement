@@ -51,7 +51,7 @@ services:
       S3_SECRET_KEY: ${RUSTFS_SECRET_KEY}
       S3_BUCKET: documents
       CURRENCY: ${CURRENCY:-CAD}
-      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:8080/s3}
       PORT: "8000"
     depends_on:
       db:
@@ -61,16 +61,28 @@ services:
       rustfs:
         condition: service_started
 
-  web:
+  frontend:
     build:
       context: ./frontend
+      args:
+        VITE_CURRENCY: ${CURRENCY:-CAD}
+    profiles:
+      - build-only
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
       args:
         VITE_CURRENCY: ${CURRENCY:-CAD}
     restart: unless-stopped
     depends_on:
       - api
+      - rustfs
+    volumes:
+      - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
     ports:
-      - "3000:80"
+      - "8080:80"
 
 volumes:
   pgdata:

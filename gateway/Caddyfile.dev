@@ -1,0 +1,40 @@
+:80 {
+	encode zstd gzip
+
+	# Security headers
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	# Reverse proxy API requests to the backend
+	handle /api/* {
+		request_body {
+			max_size 50MB
+		}
+		reverse_proxy api:8000 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Reverse proxy S3/public file requests to RustFS
+	handle /s3/* {
+		reverse_proxy rustfs:9000
+	}
+
+	# RustFS console (admin interface)
+	handle /rustfs/* {
+		reverse_proxy rustfs:9001
+	}
+
+	# Proxy everything else to Vite dev server
+	handle {
+		reverse_proxy web:3000 {
+			# Support Vite HMR (Hot Module Replacement)
+			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+}
