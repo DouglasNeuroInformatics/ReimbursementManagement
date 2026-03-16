@@ -15,7 +15,7 @@ docker compose up -d
 
 ### Backend (Deno)
 ```bash
-# Run backend directly (requires Deno 2.7.1+, .env file)
+# Run backend directly (requires Deno 2.3+, .env file)
 deno task dev          # Hot-reload development
 deno task start        # Production run
 deno task test         # Run tests
@@ -35,7 +35,7 @@ deno task build    # Production build
 deno task preview  # Preview production build
 ```
 
-**Note**: Requires Deno 2.7.1+ with npm registry support for Vite, React, and TanStack libraries.
+**Note**: Requires Deno 2.3+ with npm registry support for Vite, React, and TanStack libraries.
 
 ### Database Access
 ```bash
@@ -51,8 +51,8 @@ docker compose exec db psql -U app -d reimbursement -c "SELECT * FROM \"User\";"
 This is a **multi-stage approval workflow system** for expense reimbursements and travel requests.
 
 **Stack:**
-- **Frontend**: React 19.2.4, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4.2.1, Vite, Deno 2.7.1
-- **Backend**: Deno 2.7.1, Hono v4.12.5, Prisma v7.4.2, PostgreSQL 16
+- **Frontend**: React 19.2, TanStack Router (file-based), TanStack Query/Form/Table, Tailwind CSS v4.2, Vite 7.3, Deno 2.3.3
+- **Backend**: Deno 2.3.3, Hono v4, Prisma v7, PostgreSQL 16
 - **Storage**: RustFS (S3-compatible)
 - **Infrastructure**: Docker Compose, Caddy reverse proxy
 
@@ -114,9 +114,10 @@ All monetary fields are `Decimal(12,2)`.
 - `user@test.com` / `Test1234!` - USER (reports to supervisor)
 
 ### Port Mapping
-- 3000: Caddy (frontend SPA + API proxy)
-- 8000: Hono API
-- 5432: PostgreSQL
+- 8080: Caddy gateway (frontend SPA + API proxy) — externally accessible
+- 8000: Hono API (internal)
+- 3000: Frontend dev server (internal, dev mode only)
+- 5432: PostgreSQL (internal)
 - 9000: RustFS S3
 - 9001: RustFS console
 
