@@ -184,7 +184,7 @@ Copy `.env.example` to `.env` and configure:
 | `JWT_REFRESH_SECRET`  | Yes      | --                | HMAC key for signing refresh tokens (minimum 32 characters)        |
 | `NODE_ENV`            | No       | `development`     | Set to `production` to enable secure (HTTPS-only) cookies          |
 | `CURRENCY`            | No       | `CAD`             | ISO 4217 currency code displayed in the UI                         |
-| `S3_PUBLIC_ENDPOINT`  | No       | `http://localhost:9000` | Public URL for S3 presigned download URLs (adjust for production) |
+| `S3_PUBLIC_ENDPOINT`  | No       | `http://localhost:8080/s3` | Public URL for S3 presigned download URLs (adjust for production) |
 
 ---
 

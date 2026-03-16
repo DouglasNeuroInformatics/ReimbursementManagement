@@ -1,0 +1,46 @@
+:80 {
+	encode zstd gzip
+
+	# Security headers
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	# Reverse proxy API requests to the backend
+	handle /api/* {
+		request_body {
+			max_size 50MB
+		}
+		reverse_proxy api:8000 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# Reverse proxy S3/public file requests to RustFS
+	handle /s3/* {
+		reverse_proxy rustfs:9000
+	}
+
+	# RustFS console (admin interface)
+	handle /rustfs/* {
+		reverse_proxy rustfs:9001
+	}
+
+	# Immutable hashed assets — long cache
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# SPA fallback — serve static files, fall back to index.html
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+
+		# Don't cache the HTML shell
+		@html path /index.html
+		header @html Cache-Control "no-cache, no-store, must-revalidate"
+	}
+}
