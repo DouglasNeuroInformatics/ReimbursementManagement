@@ -1,4 +1,4 @@
-FROM denoland/deno:2.3.3 AS build
+FROM docker.io/denoland/deno:2.3.3 AS build
 WORKDIR /app
 
 # Copy Deno config and lock file
@@ -18,6 +18,6 @@ ENV VITE_CURRENCY=$VITE_CURRENCY
 RUN deno task build
 
 # Production stage: serve with Caddy
-FROM caddy:2-alpine
+FROM docker.io/caddy:2-alpine
 COPY --from=build /app/dist /srv
 COPY Caddyfile /etc/caddy/Caddyfile
