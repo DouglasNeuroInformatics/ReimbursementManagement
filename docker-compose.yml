@@ -33,9 +33,19 @@ services:
   migrate:
     build:
       context: ./backend
-    command: deno run -A npm:prisma@^7 migrate deploy
+    command: >
+      sh -c "
+        deno run -A npm:prisma@^7 migrate deploy &&
+        if [ \"$DEMO_MODE\" = 'true' ]; then
+          echo '🎭 Demo mode enabled - seeding database...' &&
+          deno run -A prisma/seed.ts
+        else
+          echo 'Production mode - skipping seed data'
+        fi
+      "
     environment:
       DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/reimbursement
+      DEMO_MODE: ${DEMO_MODE:-false}
     depends_on:
       db:
         condition: service_healthy
@@ -56,6 +66,7 @@ services:
       CURRENCY: ${CURRENCY:-CAD}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:8080/s3}
       PORT: "8000"
+      DEMO_MODE: ${DEMO_MODE:-false}
     depends_on:
       db:
         condition: service_healthy
