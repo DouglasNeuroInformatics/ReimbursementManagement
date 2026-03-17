@@ -71,6 +71,13 @@ async function initBucketWithRetry(maxRetries = 10): Promise<void> {
 }
 
 if (import.meta.main) {
+  // Log demo mode status
+  if (env.DEMO_MODE === "true") {
+    console.warn("⚠️  RUNNING IN DEMO MODE");
+    console.warn("   Seed data is available for demonstration");
+    console.warn("   Demo credentials: admin@test.com / Test1234!");
+  }
+
   await initBucketWithRetry();
   console.log(`API server starting on port ${env.PORT}`);
   Deno.serve({ port: env.PORT }, app.fetch);

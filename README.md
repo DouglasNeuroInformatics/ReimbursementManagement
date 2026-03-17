@@ -185,6 +185,47 @@ Copy `.env.example` to `.env` and configure:
 | `NODE_ENV`            | No       | `development`     | Set to `production` to enable secure (HTTPS-only) cookies          |
 | `CURRENCY`            | No       | `CAD`             | ISO 4217 currency code displayed in the UI                         |
 | `S3_PUBLIC_ENDPOINT`  | No       | `http://localhost:8080/s3` | Public URL for S3 presigned download URLs (adjust for production) |
+| `DEMO_MODE`           | No       | `false`           | Set to `true` to populate database with sample data for demonstration |
+
+## Demo Mode
+
+The application supports a demo mode that populates the database with sample data for demonstration purposes.
+
+### Enabling Demo Mode
+
+Set the `DEMO_MODE` environment variable to `true`:
+
+```bash
+# In .env file
+DEMO_MODE=true
+
+# Or when starting Docker Compose
+DEMO_MODE=true docker-compose up
+```
+
+### Demo Data
+
+When demo mode is enabled, the database is seeded with:
+
+- **3 Users** with various roles (Financial Admin, Supervisor, Regular User)
+- **8 Sample Requests** at different workflow stages (draft, submitted, approved, rejected, paid)
+- **3 Billing Accounts** for demonstrations
+
+### Demo Credentials
+
+All demo accounts use the same password: `Test1234!`
+
+- **Financial Admin**: `admin@test.com`
+- **Supervisor**: `supervisor@test.com`
+- **Regular User**: `user@test.com`
+
+### Security Notice
+
+⚠️ **DEMO MODE IS FOR DEMONSTRATION ONLY**
+- Never enable demo mode in production environments
+- Demo credentials are publicly known
+- Seed data is not meant for real financial transactions
+- Always keep `DEMO_MODE=false` (default) in production
 
 ---
 

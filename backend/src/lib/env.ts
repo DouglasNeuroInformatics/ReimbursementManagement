@@ -12,6 +12,7 @@ const schema = z.object({
   CURRENCY: z.string().default("CAD"),
   PORT: z.coerce.number().int().positive().default(8000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  DEMO_MODE: z.enum(["true", "false"]).default("false"),
 });
 
 export type Env = z.infer<typeof schema>;
