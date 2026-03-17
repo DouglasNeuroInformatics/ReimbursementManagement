@@ -19,16 +19,6 @@
 		}
 	}
 
-	# Reverse proxy S3/public file requests to RustFS
-	handle /s3/* {
-		reverse_proxy rustfs:9000
-	}
-
-	# RustFS console (admin interface)
-	handle /rustfs/* {
-		reverse_proxy rustfs:9001
-	}
-
 	# Immutable hashed assets — long cache
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"

@@ -26,6 +26,9 @@ services:
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
     volumes:
       - rustfsdata:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
 
   migrate:
     build:
