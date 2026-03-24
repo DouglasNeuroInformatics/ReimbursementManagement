@@ -8,9 +8,9 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - approv
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -42,10 +42,10 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - financ
   await cleanupDatabase();
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
-  
+
   const account = await createSupervisorAccount(admin.id, "1002", "Admin Account");
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -78,7 +78,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - missin
   await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -109,7 +109,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - invali
   await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -133,6 +133,45 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - invali
   });
 
   assertEquals(response.status, 422);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - inactive account rejected", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user, supervisor, admin } = await createTestUsers();
+  const account = await createSupervisorAccount(supervisor.id, "INACTIVE-001", "Inactive Account");
+
+  // Deactivate the account
+  const adminLogin = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: admin.email, password: admin.password },
+  });
+  const adminCookies = parseSetCookie(adminLogin.headers.get("set-cookie"));
+  await makeRequest(API_BASE, {
+    method: "DELETE",
+    path: `/supervisors/${supervisor.id}/accounts/${account.id}`,
+    cookieHeader: adminCookies.cookieHeader,
+  });
+
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
+
+  const supLogin = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: supervisor.email, password: supervisor.password },
+  });
+  const supCookies = parseSetCookie(supLogin.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/supervisor-approve`,
+    cookieHeader: supCookies.cookieHeader,
+    body: { accountId: account.id },
+  });
+
+  assertEquals(response.status, 400);
   assertExists(response.body.error);
 });
 
@@ -191,7 +230,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - reject 
   await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -215,13 +254,13 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - reject 
 
   assertEquals(response.status, 200);
   assertEquals(response.body.success, true);
-  
+
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}`,
     cookieHeader: cookies.cookieHeader,
   });
-  
+
   assertEquals(getRequestResponse.status, 200);
   assertEquals(getRequestResponse.body.request.status, "SUPERVISOR_REJECTED");
 });
@@ -231,7 +270,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - financi
   await delay(500);
   const { admin, user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -255,13 +294,13 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - financi
 
   assertEquals(response.status, 200);
   assertEquals(response.body.success, true);
-  
+
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}`,
     cookieHeader: cookies.cookieHeader,
   });
-  
+
   assertEquals(getRequestResponse.status, 200);
   assertEquals(getRequestResponse.body.request.status, "SUPERVISOR_REJECTED");
 });
@@ -313,15 +352,39 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - not sup
   assertExists(response.body.error);
 });
 
+Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - cannot reject non-submitted", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user, supervisor } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: supervisor.email, password: supervisor.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/supervisor-reject`,
+    cookieHeader: cookies.cookieHeader,
+    body: { comment: "Should not work" },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - approve supervisor approved request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
   await createApproval(request.id, supervisor.id, "APPROVE", "SUPERVISOR", account.id);
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -345,13 +408,13 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - approve s
 
   assertEquals(response.status, 200);
   assertEquals(response.body.success, true);
-  
+
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}`,
     cookieHeader: cookies.cookieHeader,
   });
-  
+
   assertEquals(getRequestResponse.status, 200);
   assertEquals(getRequestResponse.body.request.status, "FINANCE_APPROVED");
 });
@@ -413,10 +476,10 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - reject sup
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
   await createApproval(request.id, supervisor.id, "APPROVE", "SUPERVISOR", account.id);
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -440,13 +503,13 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - reject sup
 
   assertEquals(response.status, 200);
   assertEquals(response.body.success, true);
-  
+
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}`,
     cookieHeader: cookies.cookieHeader,
   });
-  
+
   assertEquals(getRequestResponse.status, 200);
   assertEquals(getRequestResponse.body.request.status, "FINANCE_REJECTED");
 });
@@ -503,16 +566,40 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - not financ
   assertExists(response.body.error);
 });
 
+Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - cannot reject non-supervisor-approved", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { admin, user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: admin.email, password: admin.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/finance-reject`,
+    cookieHeader: cookies.cookieHeader,
+    body: { comment: "Should not work" },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
 Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - mark finance approved as paid", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "FINANCE_APPROVED");
   await createApproval(request.id, supervisor.id, "APPROVE", "SUPERVISOR", account.id);
   await createApproval(request.id, admin.id, "APPROVE", "FINANCE");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -536,15 +623,39 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - mark finance ap
 
   assertEquals(response.status, 200);
   assertEquals(response.body.success, true);
-  
+
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}`,
     cookieHeader: cookies.cookieHeader,
   });
-  
+
   assertEquals(getRequestResponse.status, 200);
   assertEquals(getRequestResponse.body.request.status, "PAID");
+});
+
+Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - cannot mark non-finance-approved as paid", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { admin, user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: admin.email, password: admin.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/mark-paid`,
+    cookieHeader: cookies.cookieHeader,
+    body: { comment: "Should not work" },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
 });
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - unauthenticated", sanitizeResources: false, sanitizeOps: false }, async () => {
@@ -606,9 +717,9 @@ Deno.test({ name: "Approvals: cannot approve non-submitted request", sanitizeRes
   await delay(500);
   const { user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -640,9 +751,9 @@ Deno.test({ name: "Approvals: cannot finance approve non-supervisor approved req
   await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
-  
+
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -666,4 +777,91 @@ Deno.test({ name: "Approvals: cannot finance approve non-supervisor approved req
 
   assertEquals(response.status, 400);
   assertExists(response.body.error);
+});
+
+Deno.test({ name: "Approvals: full workflow DRAFT -> SUBMITTED -> SUP_APPROVED -> FIN_APPROVED -> PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { admin, user, supervisor } = await createTestUsers();
+  const account = await createSupervisorAccount(supervisor.id, "WF-001", "Workflow Account");
+
+  // Login all users
+  const userLogin = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const userCookies = parseSetCookie(userLogin.headers.get("set-cookie"));
+
+  const supLogin = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: supervisor.email, password: supervisor.password },
+  });
+  const supCookies = parseSetCookie(supLogin.headers.get("set-cookie"));
+
+  const adminLogin = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: admin.email, password: admin.password },
+  });
+  const adminCookies = parseSetCookie(adminLogin.headers.get("set-cookie"));
+
+  // 1. Create request
+  let response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/requests",
+    cookieHeader: userCookies.cookieHeader,
+    body: { type: "REIMBURSEMENT", title: "Full Workflow Test" },
+  });
+  assertEquals(response.status, 201);
+  const requestId = response.body.request.id;
+
+  // 2. Submit
+  response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${requestId}/submit`,
+    cookieHeader: userCookies.cookieHeader,
+  });
+  assertEquals(response.status, 200);
+  assertEquals(response.body.request.status, "SUBMITTED");
+
+  // 3. Supervisor approve
+  response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${requestId}/supervisor-approve`,
+    cookieHeader: supCookies.cookieHeader,
+    body: { accountId: account.id, comment: "Looks good" },
+  });
+  assertEquals(response.status, 200);
+  assertEquals(response.body.request.status, "SUPERVISOR_APPROVED");
+
+  // 4. Finance approve
+  response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${requestId}/finance-approve`,
+    cookieHeader: adminCookies.cookieHeader,
+    body: { comment: "Approved by finance" },
+  });
+  assertEquals(response.status, 200);
+
+  // 5. Mark paid
+  response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${requestId}/mark-paid`,
+    cookieHeader: adminCookies.cookieHeader,
+    body: { comment: "Payment sent" },
+  });
+  assertEquals(response.status, 200);
+
+  // Verify final state
+  response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${requestId}`,
+    cookieHeader: adminCookies.cookieHeader,
+  });
+  assertEquals(response.status, 200);
+  assertEquals(response.body.request.status, "PAID");
+  // Should have 3 approval records
+  assertEquals(response.body.request.approvals.length, 3);
 });

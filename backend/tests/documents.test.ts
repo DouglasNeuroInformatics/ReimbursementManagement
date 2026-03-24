@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestRequest, createDocument, makeRequest, parseSetCookie, delay, prisma } from "./test-utils.ts";
+import { cleanupDatabase, createTestUsers, createTestRequest, createTestUser, createDocument, makeRequest, parseSetCookie, delay, prisma } from "./test-utils.ts";
 import type { RequestType } from "../src/generated/prisma/client.ts";
 
 const API_BASE = "http://localhost:8000/api";
@@ -9,7 +9,7 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload document
   await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -45,7 +45,7 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload with ite
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", undefined, {
     reimbursement: { items: [{ description: "test item", amount: 100, date: new Date() }] }
   });
-  
+
   const requestWithItems = await prisma.request.findUnique({
     where: { id: request.id },
     include: { reimbursement: { include: { items: true } } }
@@ -86,7 +86,7 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload to non-e
   await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -118,7 +118,7 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload exceeds 
   await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -134,6 +134,34 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload exceeds 
   const largeContent = new Array(51 * 1024 * 1024).fill("a").join("");
   const formData = new FormData();
   formData.append("file", new Blob([largeContent], { type: "text/plain" }), "large-file.txt");
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/documents`,
+    cookieHeader: cookies.cookieHeader,
+    body: formData,
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Documents: POST /api/requests/:id/documents - invalid file type", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  assertEquals(loginResponse.status, 200);
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const formData = new FormData();
+  formData.append("file", new Blob(["#!/bin/bash\necho hi"], { type: "application/x-shellscript" }), "script.sh");
 
   const response = await makeRequest(API_BASE, {
     method: "POST",
@@ -169,7 +197,7 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - not owner", san
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const supervisorRequest = await createTestRequest(supervisor.id, "REIMBURSEMENT", "DRAFT");
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -196,13 +224,67 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - not owner", san
   assertExists(response.body.error);
 });
 
+Deno.test({ name: "Documents: POST /api/requests/:id/documents - non-existent request returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const formData = new FormData();
+  formData.append("file", new Blob(["test"], { type: "text/plain" }), "test.txt");
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/requests/00000000-0000-0000-0000-000000000000/documents",
+    cookieHeader: cookies.cookieHeader,
+    body: formData,
+  });
+
+  assertEquals(response.status, 404);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Documents: POST /api/requests/:id/documents - can upload to rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_REJECTED");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  assertEquals(loginResponse.status, 200);
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const formData = new FormData();
+  formData.append("file", new Blob(["revised doc"], { type: "text/plain" }), "revised.txt");
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/documents`,
+    cookieHeader: cookies.cookieHeader,
+    body: formData,
+  });
+
+  assertEquals(response.status, 201);
+  assertExists(response.body.document);
+});
+
 Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - get download URL", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
   await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -230,7 +312,7 @@ Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - unaut
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
-  
+
   const response = await makeRequest(API_BASE, {
     method: "GET",
     path: `/requests/${request.id}/documents/${doc.id}/url`,
@@ -240,13 +322,36 @@ Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - unaut
   assertExists(response.body.error);
 });
 
+Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - non-existent document returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}/documents/00000000-0000-0000-0000-000000000000/url`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 404);
+  assertExists(response.body.error);
+});
+
 Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - delete document", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
   await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
-  
+
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",
     path: "/auth/login",
@@ -276,4 +381,42 @@ Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - delete
 
   assertEquals(docCheck.status, 404);
   assertExists(docCheck.body.error);
+});
+
+Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - non-existent document returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "DELETE",
+    path: `/requests/${request.id}/documents/00000000-0000-0000-0000-000000000000`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 404);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - unauthenticated", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+  const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
+
+  const response = await makeRequest(API_BASE, {
+    method: "DELETE",
+    path: `/requests/${request.id}/documents/${doc.id}`,
+  });
+
+  assertEquals(response.status, 401);
+  assertExists(response.body.error);
 });
