@@ -88,7 +88,6 @@ function canView(
   if (role === "FINANCIAL_ADMIN") return true;
   if (request.userId === userId) return true;
   if (role === "SUPERVISOR" && request.user.supervisorId === userId) return true;
-  if (role === "SUPERVISOR" && !request.user.supervisorId) return true;
   return false;
 }
 
@@ -274,6 +273,16 @@ export async function updateRequest(
 
     if (data.travelReimbursement && request.type === "TRAVEL_REIMBURSEMENT") {
       const tr = data.travelReimbursement;
+      if (tr.advanceRequestId) {
+        const advance = await tx.request.findUnique({
+          where: { id: tr.advanceRequestId },
+          select: { userId: true, type: true, status: true },
+        });
+        if (!advance) throw new AppError(400, "Linked travel advance does not exist");
+        if (advance.userId !== userId) throw new AppError(400, "Linked travel advance does not belong to you");
+        if (advance.type !== "TRAVEL_ADVANCE") throw new AppError(400, "Linked request is not a travel advance");
+        if (advance.status !== "PAID") throw new AppError(400, "Linked travel advance must be paid");
+      }
       const detail = await tx.travelReimbursementDetail.upsert({
         where: { requestId },
         create: {

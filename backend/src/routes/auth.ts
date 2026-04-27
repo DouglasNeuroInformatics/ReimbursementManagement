@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import * as authService from "../services/auth.service.ts";
-import { authenticate, rateLimitAuth } from '../middleware/auth.ts';
+import { authenticate, csrfProtect, rateLimitAuth } from '../middleware/auth.ts';
 import { AppError } from "../middleware/error.ts";
 import { getEnv } from "../lib/env.ts";
 import type { HonoEnv } from "../types.ts";
@@ -49,7 +49,7 @@ router.post("/login", async (c) => {
   return c.json({ user: result.user });
 });
 
-router.post("/logout", async (c) => {
+router.post("/logout", csrfProtect, async (c) => {
   const refreshToken = getCookie(c, "refresh_token");
   if (refreshToken) await authService.logout(refreshToken);
   deleteCookie(c, "access_token", { path: "/" });
@@ -57,7 +57,7 @@ router.post("/logout", async (c) => {
   return c.json({ success: true });
 });
 
-router.post("/refresh", async (c) => {
+router.post("/refresh", csrfProtect, async (c) => {
   const refreshToken = getCookie(c, "refresh_token");
   if (!refreshToken) throw new AppError(401, "No refresh token provided");
   const result = await authService.refresh(refreshToken);
@@ -79,7 +79,7 @@ const profileSchema = z.object({
   jobPosition: z.string().nullable().optional(),
 });
 
-router.patch("/me", authenticate, async (c) => {
+router.patch("/me", authenticate, csrfProtect, async (c) => {
   const { id } = c.get("user");
   const body = await c.req.json();
   const data = profileSchema.parse(body);

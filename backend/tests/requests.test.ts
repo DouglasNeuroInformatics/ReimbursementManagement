@@ -1,5 +1,5 @@
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestRequest, makeRequest, parseSetCookie, delay } from "./test-utils.ts";
+import { cleanupDatabase, createTestUser, createTestUsers, createTestRequest, makeRequest, parseSetCookie, delay, prisma } from "./test-utils.ts";
 import type { RequestType } from "../src/generated/prisma/client.ts";
 
 const API_BASE = "http://localhost:8000/api";
@@ -1050,4 +1050,211 @@ Deno.test({ name: "Requests: GET /api/requests - scope=own for admin shows only 
   assertEquals(response.status, 200);
   assertEquals(response.body.requests.length, 1);
   assertEquals(response.body.requests[0].title, "Admin's Request");
+});
+
+Deno.test({ name: "Requests: GET /api/requests/:id - supervisor cannot view request of orphan-supervisor user", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { supervisor } = await createTestUsers();
+  // Orphan user: no supervisor assigned
+  const orphan = await createTestUser("orphan@example.com", "Password123!", "Orphan", "User", "USER");
+  const request = await createTestRequest(orphan.id, "REIMBURSEMENT", "SUBMITTED");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: supervisor.email, password: supervisor.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 403);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects amount with >2 decimal places", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      reimbursement: {
+        items: [
+          {
+            description: "Item",
+            amount: 1.999,
+            date: new Date("2026-01-01").toISOString(),
+          },
+        ],
+      },
+    },
+  });
+
+  assertEquals(response.status, 422);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects bogus advanceRequestId (does not exist)", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      travelReimbursement: {
+        advanceRequestId: "00000000-0000-0000-0000-000000000000",
+      },
+    },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId belonging to another user", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user, admin } = await createTestUsers();
+  const otherAdvance = await createTestRequest(admin.id, "TRAVEL_ADVANCE", "PAID");
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      travelReimbursement: {
+        advanceRequestId: otherAdvance.id,
+      },
+    },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId of wrong type", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const reimbursement = await createTestRequest(user.id, "REIMBURSEMENT", "PAID");
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      travelReimbursement: {
+        advanceRequestId: reimbursement.id,
+      },
+    },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId not yet PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const draftAdvance = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      travelReimbursement: {
+        advanceRequestId: draftAdvance.id,
+      },
+    },
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: PATCH /api/requests/:id - accepts advanceRequestId that is owned, TRAVEL_ADVANCE, and PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const paidAdvance = await createTestRequest(user.id, "TRAVEL_ADVANCE", "PAID");
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      travelReimbursement: {
+        destination: "Toronto",
+        purpose: "Conference",
+        departureDate: new Date("2026-02-01").toISOString(),
+        returnDate: new Date("2026-02-05").toISOString(),
+        advanceRequestId: paidAdvance.id,
+      },
+    },
+  });
+
+  assertEquals(response.status, 200);
+  const detail = await prisma.travelReimbursementDetail.findUnique({ where: { requestId: request.id } });
+  assertEquals(detail?.advanceRequestId, paidAdvance.id);
 });

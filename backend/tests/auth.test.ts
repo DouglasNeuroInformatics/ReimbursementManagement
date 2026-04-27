@@ -408,3 +408,49 @@ Deno.test({ name: "Auth: POST /api/auth/refresh - invalid refresh token", saniti
   assertEquals(response.status, 401);
   assertExists(response.body.error);
 });
+
+Deno.test({ name: "Auth: POST /api/auth/refresh - missing X-Requested-With is rejected (CSRF)", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(1000);
+  await createTestUser("csrf-refresh@example.com", "Password123!", "CSRF", "Refresh");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: "csrf-refresh@example.com", password: "Password123!" },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/refresh",
+    cookieHeader: cookies.cookieHeader,
+    skipCsrfHeader: true,
+  });
+
+  assertEquals(response.status, 403);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Auth: POST /api/auth/logout - missing X-Requested-With is rejected (CSRF)", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(1000);
+  await createTestUser("csrf-logout@example.com", "Password123!", "CSRF", "Logout");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: "csrf-logout@example.com", password: "Password123!" },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/logout",
+    cookieHeader: cookies.cookieHeader,
+    skipCsrfHeader: true,
+  });
+
+  assertEquals(response.status, 403);
+  assertExists(response.body.error);
+});
