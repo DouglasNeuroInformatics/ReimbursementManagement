@@ -34,7 +34,7 @@ const updateSchema = z.object({
         .array(
           z.object({
             description: z.string().min(1),
-            amount: z.number().positive(),
+            amount: z.number().positive().multipleOf(0.01),
             date: z.string().datetime(),
             vendor: z.string().nullable().optional(),
             notes: z.string().nullable().optional(),
@@ -49,12 +49,12 @@ const updateSchema = z.object({
       purpose: z.string().min(1).optional(),
       departureDate: z.string().datetime().optional(),
       returnDate: z.string().datetime().optional(),
-      estimatedAmount: z.number().positive().optional(),
+      estimatedAmount: z.number().positive().multipleOf(0.01).optional(),
       items: z
         .array(
           z.object({
             category: z.string().min(1),
-            amount: z.number().positive(),
+            amount: z.number().positive().multipleOf(0.01),
             notes: z.string().nullable().optional(),
           }),
         )
@@ -67,14 +67,14 @@ const updateSchema = z.object({
       purpose: z.string().min(1).optional(),
       departureDate: z.string().datetime().optional(),
       returnDate: z.string().datetime().optional(),
-      totalAmount: z.number().positive().optional(),
+      totalAmount: z.number().positive().multipleOf(0.01).optional(),
       advanceRequestId: z.string().uuid().nullable().optional(),
       items: z
         .array(
           z.object({
             date: z.string().datetime(),
             category: z.string().min(1),
-            amount: z.number().positive(),
+            amount: z.number().positive().multipleOf(0.01),
             vendor: z.string().nullable().optional(),
             notes: z.string().nullable().optional(),
           }),

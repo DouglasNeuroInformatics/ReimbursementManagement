@@ -316,6 +316,7 @@ export interface RequestOptions {
   body?: any;
   headers?: HeadersInit;
   cookieHeader?: string;
+  skipCsrfHeader?: boolean;
 }
 
 export interface SetCookieResult {
@@ -357,7 +358,7 @@ export async function makeRequest(
   baseUrl: string,
   options: RequestOptions,
 ): Promise<{ status: number; body: any; headers: Headers }> {
-  const { method, path, body, headers, cookieHeader } = options;
+  const { method, path, body, headers, cookieHeader, skipCsrfHeader } = options;
 
   const requestHeaders = new Headers(headers);
 
@@ -367,7 +368,9 @@ export async function makeRequest(
 
   requestHeaders.set("X-Real-IP", `127.0.0.${Math.floor(Math.random() * 255)}`);
 
-  requestHeaders.set("X-Requested-With", "XMLHttpRequest");
+  if (!skipCsrfHeader) {
+    requestHeaders.set("X-Requested-With", "XMLHttpRequest");
+  }
 
   if (body && method !== "GET") {
     if (!(body instanceof FormData)) {
