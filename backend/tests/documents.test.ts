@@ -1,12 +1,11 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestRequest, createTestUser, createDocument, makeRequest, parseSetCookie, delay, prisma } from "./test-utils.ts";
+import { cleanupDatabase, createTestUsers, createTestRequest, createTestUser, createDocument, makeRequest, parseSetCookie, prisma } from "./test-utils.ts";
 import type { RequestType } from "../src/generated/prisma/client.ts";
 
 const API_BASE = "http://localhost:8000/api";
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload document", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -40,7 +39,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload document
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload with itemId", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", undefined, {
     reimbursement: { items: [{ description: "test item", amount: 100, date: new Date() }] }
@@ -83,7 +81,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload with ite
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload to non-editable request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -115,7 +112,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload to non-e
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload exceeds size limit", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -148,7 +144,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - upload exceeds 
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - invalid file type", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -226,7 +221,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - not owner", san
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - non-existent request returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -252,7 +246,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - non-existent re
 
 Deno.test({ name: "Documents: POST /api/requests/:id/documents - can upload to rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_REJECTED");
 
@@ -280,7 +273,6 @@ Deno.test({ name: "Documents: POST /api/requests/:id/documents - can upload to r
 
 Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - get download URL", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
@@ -324,7 +316,6 @@ Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - unaut
 
 Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - non-existent document returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -347,7 +338,6 @@ Deno.test({ name: "Documents: GET /api/requests/:id/documents/:docId/url - non-e
 
 Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - delete document", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
   const doc = await createDocument(request.id, "doc1.pdf", "application/pdf", "file1.pdf", user.id);
@@ -385,7 +375,6 @@ Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - delete
 
 Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - non-existent document returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -423,7 +412,6 @@ Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - unauth
 
 Deno.test({ name: "Documents: PATCH reimbursement items - shrinking item count deletes orphaned docs and preserves overlap", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", undefined, {
     reimbursement: {

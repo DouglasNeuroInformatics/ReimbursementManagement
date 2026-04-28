@@ -1,11 +1,10 @@
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestRequest, createApproval, makeRequest, parseSetCookie, delay, createSupervisorAccount } from "./test-utils.ts";
+import { cleanupDatabase, createTestUsers, createTestRequest, createApproval, makeRequest, parseSetCookie, createSupervisorAccount } from "./test-utils.ts";
 
 const API_BASE = "http://localhost:8000/api";
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - approve submitted request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -40,7 +39,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - approv
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - financial admin can approve", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
 
   const account = await createSupervisorAccount(admin.id, "1002", "Admin Account");
@@ -75,7 +73,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - financ
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - missing accountId", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -106,7 +103,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - missin
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - invalid accountId", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -138,7 +134,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - invali
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - inactive account rejected", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor, admin } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "INACTIVE-001", "Inactive Account");
 
@@ -227,7 +222,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-approve - not su
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - reject submitted request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -267,7 +261,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - reject 
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - financial admin can reject", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -354,7 +347,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - not sup
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - cannot reject non-submitted", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -378,7 +370,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - cannot 
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - approve supervisor approved request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -440,7 +431,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - unauthent
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - not financial admin", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
@@ -473,7 +463,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - not finan
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - reject supervisor approved request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -535,7 +524,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - unauthenti
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - not financial admin", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
@@ -568,7 +556,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - not financ
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - cannot reject non-supervisor-approved", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -592,7 +579,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - cannot rej
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - mark finance approved as paid", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -636,7 +622,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - mark finance ap
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - cannot mark non-finance-approved as paid", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED");
 
@@ -680,7 +665,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - unauthenticated
 
 Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - not financial admin", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "FINANCE_APPROVED");
@@ -714,7 +698,6 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - not financial a
 
 Deno.test({ name: "Approvals: cannot approve non-submitted request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -748,7 +731,6 @@ Deno.test({ name: "Approvals: cannot approve non-submitted request", sanitizeRes
 
 Deno.test({ name: "Approvals: cannot finance approve non-supervisor approved request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "1001", "Test Account");
 
@@ -781,7 +763,6 @@ Deno.test({ name: "Approvals: cannot finance approve non-supervisor approved req
 
 Deno.test({ name: "Approvals: full workflow DRAFT -> SUBMITTED -> SUP_APPROVED -> FIN_APPROVED -> PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user, supervisor } = await createTestUsers();
   const account = await createSupervisorAccount(supervisor.id, "WF-001", "Workflow Account");
 

@@ -1,5 +1,5 @@
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUser, createTestUsers, createTestRequest, makeRequest, parseSetCookie, delay, prisma } from "./test-utils.ts";
+import { cleanupDatabase, createTestUser, createTestUsers, createTestRequest, makeRequest, parseSetCookie, prisma } from "./test-utils.ts";
 import type { RequestType } from "../src/generated/prisma/client.ts";
 
 const API_BASE = "http://localhost:8000/api";
@@ -167,7 +167,6 @@ Deno.test({ name: "Requests: GET /api/requests - cursor pagination second page",
 
 Deno.test({ name: "Requests: POST /api/requests - create reimbursement request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -202,7 +201,6 @@ Deno.test({ name: "Requests: POST /api/requests - create reimbursement request",
 
 Deno.test({ name: "Requests: POST /api/requests - create travel advance request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -236,7 +234,6 @@ Deno.test({ name: "Requests: POST /api/requests - create travel advance request"
 
 Deno.test({ name: "Requests: POST /api/requests - create travel reimbursement request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -286,7 +283,6 @@ Deno.test({ name: "Requests: POST /api/requests - unauthenticated", sanitizeReso
 
 Deno.test({ name: "Requests: POST /api/requests - invalid type", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -316,7 +312,6 @@ Deno.test({ name: "Requests: POST /api/requests - invalid type", sanitizeResourc
 
 Deno.test({ name: "Requests: POST /api/requests - missing required fields", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -457,7 +452,6 @@ Deno.test({ name: "Requests: GET /api/requests/:id - supervisor can view subordi
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - update draft request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", "Original Title");
 
@@ -499,7 +493,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - update draft request", sa
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - update travel advance details", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
 
@@ -540,7 +533,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - update travel advance det
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - update travel reimbursement details", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
 
@@ -579,7 +571,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - update travel reimburseme
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - can update rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_REJECTED");
 
@@ -603,7 +594,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - can update rejected reque
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - cannot update submitted request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -633,7 +623,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - cannot update submitted r
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - other user cannot update", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -675,7 +664,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - unauthenticated", sanitiz
 
 Deno.test({ name: "Requests: DELETE /api/requests/:id - delete draft request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -702,7 +690,6 @@ Deno.test({ name: "Requests: DELETE /api/requests/:id - delete draft request", s
 
 Deno.test({ name: "Requests: DELETE /api/requests/:id - cannot delete submitted request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -729,7 +716,6 @@ Deno.test({ name: "Requests: DELETE /api/requests/:id - cannot delete submitted 
 
 Deno.test({ name: "Requests: DELETE /api/requests/:id - other user cannot delete", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -766,7 +752,6 @@ Deno.test({ name: "Requests: DELETE /api/requests/:id - unauthenticated", saniti
 
 Deno.test({ name: "Requests: DELETE /api/requests/:id - non-existent request returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -788,7 +773,6 @@ Deno.test({ name: "Requests: DELETE /api/requests/:id - non-existent request ret
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - submit draft request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -817,7 +801,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - submit draft reques
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - cannot submit non-draft", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED");
 
@@ -844,7 +827,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - cannot submit non-d
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - other user cannot submit", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, supervisor } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -881,7 +863,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - unauthenticated", s
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVANCE without detail row", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
 
@@ -904,7 +885,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVA
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVANCE with empty destination", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
   // Seed an "empty" detail row directly — bypasses Zod .min(1) validation that would
@@ -940,7 +920,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVA
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_REIMBURSEMENT with empty purpose", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
   await prisma.travelReimbursementDetail.create({
@@ -973,7 +952,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_REIM
 
 Deno.test({ name: "Requests: POST /api/requests/:id/submit - accepts TRAVEL_ADVANCE with complete detail", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT", undefined, {
     travelAdvance: {
@@ -1004,7 +982,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - accepts TRAVEL_ADVA
 
 Deno.test({ name: "Requests: POST /api/requests/:id/revise - revise supervisor rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_REJECTED");
 
@@ -1032,7 +1009,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/revise - revise supervisor r
 
 Deno.test({ name: "Requests: POST /api/requests/:id/revise - revise finance rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "FINANCE_REJECTED");
 
@@ -1056,7 +1032,6 @@ Deno.test({ name: "Requests: POST /api/requests/:id/revise - revise finance reje
 
 Deno.test({ name: "Requests: POST /api/requests/:id/revise - cannot revise draft", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -1201,7 +1176,6 @@ Deno.test({ name: "Requests: GET /api/requests/:id - supervisor cannot view requ
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects amount with >2 decimal places", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
 
@@ -1235,7 +1209,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects amount with >2 de
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects bogus advanceRequestId (does not exist)", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
 
@@ -1263,7 +1236,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects bogus advanceRequ
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId belonging to another user", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user, admin } = await createTestUsers();
   const otherAdvance = await createTestRequest(admin.id, "TRAVEL_ADVANCE", "PAID");
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
@@ -1292,7 +1264,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId 
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId of wrong type", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const reimbursement = await createTestRequest(user.id, "REIMBURSEMENT", "PAID");
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
@@ -1321,7 +1292,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId 
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId not yet PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const draftAdvance = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
@@ -1350,7 +1320,6 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - rejects advanceRequestId 
 
 Deno.test({ name: "Requests: PATCH /api/requests/:id - accepts advanceRequestId that is owned, TRAVEL_ADVANCE, and PAID", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { user } = await createTestUsers();
   const paidAdvance = await createTestRequest(user.id, "TRAVEL_ADVANCE", "PAID");
   const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");

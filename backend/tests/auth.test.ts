@@ -1,5 +1,5 @@
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUser, createTestUsers, makeRequest, parseSetCookie, delay } from "./test-utils.ts";
+import { cleanupDatabase, createTestUser, createTestUsers, makeRequest, parseSetCookie } from "./test-utils.ts";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -274,7 +274,6 @@ Deno.test({ name: "Auth: PATCH /api/auth/me - set fields to null", sanitizeResou
     cookieHeader: cookies.cookieHeader,
   });
 
-  await delay(1000);
 
   const response = await makeRequest(API_BASE, {
     method: "PATCH",
@@ -298,7 +297,6 @@ Deno.test({ name: "Auth: PATCH /api/auth/me - set fields to null", sanitizeResou
 
 Deno.test({ name: "Auth: PATCH /api/auth/me - unauthenticated", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
 
   const response = await makeRequest(API_BASE, {
     method: "PATCH",
@@ -314,7 +312,6 @@ Deno.test({ name: "Auth: PATCH /api/auth/me - unauthenticated", sanitizeResource
 
 Deno.test({ name: "Auth: POST /api/auth/logout - successful logout", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const testUser = await createTestUser("logout@example.com", "Password123!", "Logout", "User");
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -351,7 +348,6 @@ Deno.test({ name: "Auth: POST /api/auth/logout - successful logout", sanitizeRes
 
 Deno.test({ name: "Auth: POST /api/auth/refresh - successful token refresh", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
   const testUser = await createTestUser("refresh@example.com", "Password123!", "Refresh", "User");
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -384,7 +380,6 @@ Deno.test({ name: "Auth: POST /api/auth/refresh - successful token refresh", san
 
 Deno.test({ name: "Auth: POST /api/auth/refresh - no refresh token", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
 
   const response = await makeRequest(API_BASE, {
     method: "POST",
@@ -397,7 +392,6 @@ Deno.test({ name: "Auth: POST /api/auth/refresh - no refresh token", sanitizeRes
 
 Deno.test({ name: "Auth: POST /api/auth/refresh - invalid refresh token", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
 
   const response = await makeRequest(API_BASE, {
     method: "POST",
@@ -411,7 +405,6 @@ Deno.test({ name: "Auth: POST /api/auth/refresh - invalid refresh token", saniti
 
 Deno.test({ name: "Auth: POST /api/auth/refresh - missing X-Requested-With is rejected (CSRF)", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
   await createTestUser("csrf-refresh@example.com", "Password123!", "CSRF", "Refresh");
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -434,7 +427,6 @@ Deno.test({ name: "Auth: POST /api/auth/refresh - missing X-Requested-With is re
 
 Deno.test({ name: "Auth: POST /api/auth/logout - missing X-Requested-With is rejected (CSRF)", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
   await createTestUser("csrf-logout@example.com", "Password123!", "CSRF", "Logout");
 
   const loginResponse = await makeRequest(API_BASE, {
@@ -457,7 +449,6 @@ Deno.test({ name: "Auth: POST /api/auth/logout - missing X-Requested-With is rej
 
 Deno.test({ name: "Auth: rate-limit lets requests through when no IP headers in dev/test env", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(1000);
 
   // No X-Real-IP / X-Forwarded-For. In production this would 429 (fail closed);
   // in test/dev the middleware lets the request reach the handler.
