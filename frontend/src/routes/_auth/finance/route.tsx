@@ -1,9 +1,9 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
-import type { User } from '../../../types'
+import { fetchUser } from '../../../lib/api'
 
 export const Route = createFileRoute('/_auth/finance')({
-  beforeLoad: ({ context }) => {
-    const { user } = context as { user: User }
+  beforeLoad: async ({ context: { queryClient } }) => {
+    const user = await queryClient.fetchQuery({ queryKey: ['auth', 'me'], queryFn: fetchUser })
     if (!user || user.role !== 'FINANCIAL_ADMIN') {
       throw redirect({ to: '/dashboard' })
     }

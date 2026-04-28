@@ -208,4 +208,5 @@ model Approval {
   createdAt DateTime           @default(now())
 
   @@index([requestId])
+  @@index([actorId])
 }

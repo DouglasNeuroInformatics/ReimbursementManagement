@@ -576,9 +576,11 @@ async function seed() {
   );
 
   console.log("\n--- Dev seed complete ---");
-  console.log(`  admin@test.com      / ${PASSWORD}  (FINANCIAL_ADMIN)`);
-  console.log(`  supervisor@test.com / ${PASSWORD}  (SUPERVISOR)`);
-  console.log(`  user@test.com       / ${PASSWORD}  (USER)`);
+  if (Deno.env.get("DEMO_MODE") === "true") {
+    console.log(`  admin@test.com      / ${PASSWORD}  (FINANCIAL_ADMIN)`);
+    console.log(`  supervisor@test.com / ${PASSWORD}  (SUPERVISOR)`);
+    console.log(`  user@test.com       / ${PASSWORD}  (USER)`);
+  }
 }
 
 try {
