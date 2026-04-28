@@ -338,12 +338,31 @@ export async function deleteRequest(requestId: string, userId: string) {
 }
 
 export async function submitRequest(requestId: string, userId: string) {
-  const request = await prisma.request.findUnique({ where: { id: requestId } });
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+    include: {
+      travelAdvance: { select: { destination: true, purpose: true } },
+      travelReimbursement: { select: { destination: true, purpose: true } },
+    },
+  });
   if (!request) throw new AppError(404, "Request not found");
   if (request.userId !== userId) throw new AppError(403, "Access denied");
   if (request.status !== "DRAFT") {
     throw new AppError(400, `Cannot submit request with status: ${request.status}`);
   }
+
+  if (request.type === "TRAVEL_ADVANCE") {
+    const ta = request.travelAdvance;
+    if (!ta) throw new AppError(400, "Travel details are required before submission");
+    if (!ta.destination.trim()) throw new AppError(400, "Destination is required");
+    if (!ta.purpose.trim()) throw new AppError(400, "Purpose is required");
+  } else if (request.type === "TRAVEL_REIMBURSEMENT") {
+    const tr = request.travelReimbursement;
+    if (!tr) throw new AppError(400, "Travel details are required before submission");
+    if (!tr.destination.trim()) throw new AppError(400, "Destination is required");
+    if (!tr.purpose.trim()) throw new AppError(400, "Purpose is required");
+  }
+
   return prisma.request.update({
     where: { id: requestId },
     data: { status: "SUBMITTED", submittedAt: new Date() },

@@ -1,6 +1,15 @@
 import { prisma } from "../lib/prisma.ts";
 import { AppError } from "../middleware/error.ts";
 
+const approvalInclude = {
+  approvals: {
+    include: {
+      actor: { select: { id: true, firstName: true, lastName: true } },
+      account: { select: { id: true, accountNumber: true, label: true } },
+    },
+  },
+} as const;
+
 export async function supervisorApprove(
   requestId: string,
   supervisorId: string,
@@ -30,12 +39,12 @@ export async function supervisorApprove(
     throw new AppError(400, "Selected account is inactive");
   }
 
-  await prisma.$transaction([
-    prisma.request.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.request.update({
       where: { id: requestId },
       data: { status: "SUPERVISOR_APPROVED" },
-    }),
-    prisma.approval.create({
+    });
+    await tx.approval.create({
       data: {
         requestId,
         actorId: supervisorId,
@@ -44,19 +53,11 @@ export async function supervisorApprove(
         accountId,
         comment: comment ?? null,
       },
-    }),
-  ]);
-
-  return prisma.request.findUnique({
-    where: { id: requestId },
-    include: {
-      approvals: {
-        include: {
-          actor: { select: { id: true, firstName: true, lastName: true } },
-          account: { select: { id: true, accountNumber: true, label: true } },
-        },
-      },
-    },
+    });
+    return tx.request.findUnique({
+      where: { id: requestId },
+      include: approvalInclude,
+    });
   });
 }
 
@@ -78,12 +79,12 @@ export async function supervisorReject(
     throw new AppError(403, "This request is assigned to a different supervisor");
   }
 
-  await prisma.$transaction([
-    prisma.request.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.request.update({
       where: { id: requestId },
       data: { status: "SUPERVISOR_REJECTED" },
-    }),
-    prisma.approval.create({
+    });
+    await tx.approval.create({
       data: {
         requestId,
         actorId: supervisorId,
@@ -91,8 +92,12 @@ export async function supervisorReject(
         stage: "SUPERVISOR",
         comment: comment ?? null,
       },
-    }),
-  ]);
+    });
+    return tx.request.findUnique({
+      where: { id: requestId },
+      include: approvalInclude,
+    });
+  });
 }
 
 export async function financeApprove(
@@ -105,12 +110,12 @@ export async function financeApprove(
   if (request.status !== "SUPERVISOR_APPROVED") {
     throw new AppError(400, `Cannot approve request with status: ${request.status}`);
   }
-  await prisma.$transaction([
-    prisma.request.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.request.update({
       where: { id: requestId },
       data: { status: "FINANCE_APPROVED" },
-    }),
-    prisma.approval.create({
+    });
+    await tx.approval.create({
       data: {
         requestId,
         actorId: adminId,
@@ -118,8 +123,12 @@ export async function financeApprove(
         stage: "FINANCE",
         comment: comment ?? null,
       },
-    }),
-  ]);
+    });
+    return tx.request.findUnique({
+      where: { id: requestId },
+      include: approvalInclude,
+    });
+  });
 }
 
 export async function financeReject(
@@ -132,12 +141,12 @@ export async function financeReject(
   if (request.status !== "SUPERVISOR_APPROVED") {
     throw new AppError(400, `Cannot reject request with status: ${request.status}`);
   }
-  await prisma.$transaction([
-    prisma.request.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.request.update({
       where: { id: requestId },
       data: { status: "FINANCE_REJECTED" },
-    }),
-    prisma.approval.create({
+    });
+    await tx.approval.create({
       data: {
         requestId,
         actorId: adminId,
@@ -145,8 +154,12 @@ export async function financeReject(
         stage: "FINANCE",
         comment: comment ?? null,
       },
-    }),
-  ]);
+    });
+    return tx.request.findUnique({
+      where: { id: requestId },
+      include: approvalInclude,
+    });
+  });
 }
 
 export async function markPaid(
@@ -159,12 +172,12 @@ export async function markPaid(
   if (request.status !== "FINANCE_APPROVED") {
     throw new AppError(400, `Cannot mark paid request with status: ${request.status}`);
   }
-  await prisma.$transaction([
-    prisma.request.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.request.update({
       where: { id: requestId },
       data: { status: "PAID" },
-    }),
-    prisma.approval.create({
+    });
+    await tx.approval.create({
       data: {
         requestId,
         actorId: adminId,
@@ -172,6 +185,10 @@ export async function markPaid(
         stage: "FINANCE",
         comment: comment ?? null,
       },
-    }),
-  ]);
+    });
+    return tx.request.findUnique({
+      where: { id: requestId },
+      include: approvalInclude,
+    });
+  });
 }
