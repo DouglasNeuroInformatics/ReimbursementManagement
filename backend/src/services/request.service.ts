@@ -197,7 +197,11 @@ export async function updateRequest(
         update: {},
       });
       if (data.reimbursement.items !== undefined) {
-        // Capture old item → document mapping before deleting items
+        // Capture old items in date-asc order — same order the frontend
+        // received them, so position-based reassociation lines up below.
+        // Limitation: if the user reorders items (without changing count),
+        // documents will end up on the wrong item. Capacity-shrink and
+        // append-only edits are correct.
         const oldItems = await tx.reimbursementItem.findMany({
           where: { detailId: detail.id },
           orderBy: { date: "asc" },
@@ -206,32 +210,41 @@ export async function updateRequest(
         const oldDocsByIndex: string[][] = oldItems.map((it: { id: string; documents: { id: string }[] }) => it.documents.map((d: { id: string }) => d.id));
 
         await tx.reimbursementItem.deleteMany({ where: { detailId: detail.id } });
-        if (data.reimbursement.items.length > 0) {
-          await tx.reimbursementItem.createMany({
-            data: data.reimbursement.items.map((item) => ({
+
+        // Recreate items individually so we know which ID corresponds to
+        // each input position (createMany would lose that mapping).
+        const newItemIds: string[] = [];
+        for (const item of data.reimbursement.items) {
+          const created = await tx.reimbursementItem.create({
+            data: {
               detailId: detail.id,
               description: item.description,
               amount: item.amount,
               date: new Date(item.date),
               vendor: item.vendor ?? null,
               notes: item.notes ?? null,
-            })),
-          });
-
-          // Re-associate documents with new items by index
-          const newItems = await tx.reimbursementItem.findMany({
-            where: { detailId: detail.id },
-            orderBy: { date: "asc" },
+            },
             select: { id: true },
           });
-          for (let i = 0; i < Math.min(oldDocsByIndex.length, newItems.length); i++) {
-            if (oldDocsByIndex[i].length > 0) {
-              await tx.document.updateMany({
-                where: { id: { in: oldDocsByIndex[i] } },
-                data: { reimbursementItemId: newItems[i].id },
-              });
-            }
+          newItemIds.push(created.id);
+        }
+
+        // Re-associate documents with new items by index for the overlap.
+        const overlap = Math.min(oldDocsByIndex.length, newItemIds.length);
+        for (let i = 0; i < overlap; i++) {
+          if (oldDocsByIndex[i].length > 0) {
+            await tx.document.updateMany({
+              where: { id: { in: oldDocsByIndex[i] } },
+              data: { reimbursementItemId: newItemIds[i] },
+            });
           }
+        }
+
+        // Delete documents whose old item index has no new home (item count shrank).
+        const orphanedDocIds = oldDocsByIndex.slice(newItemIds.length).flat();
+        if (orphanedDocIds.length > 0) {
+          const { deleteDocumentsByIds } = await import("./storage.service.ts");
+          await deleteDocumentsByIds(orphanedDocIds, tx);
         }
       }
     }

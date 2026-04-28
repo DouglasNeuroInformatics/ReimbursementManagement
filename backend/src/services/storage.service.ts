@@ -103,3 +103,28 @@ export async function deleteRequestDocuments(requestId: string): Promise<void> {
   }
   await prisma.document.deleteMany({ where: { requestId } });
 }
+
+/**
+ * Delete the given documents (S3 objects + DB rows). Used when a reimbursement
+ * item is removed during edit and its attached documents have no new home.
+ * Accepts an optional Prisma transaction client so the caller can keep DB
+ * deletions atomic with surrounding work; S3 deletions are best-effort.
+ */
+export async function deleteDocumentsByIds(
+  ids: string[],
+  tx: { document: typeof prisma.document } = prisma,
+): Promise<void> {
+  if (ids.length === 0) return;
+  const docs = await tx.document.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, s3Key: true },
+  });
+  for (const doc of docs) {
+    try {
+      await deleteObject(doc.s3Key);
+    } catch (err) {
+      console.error(`Failed to delete S3 object ${doc.s3Key}:`, err);
+    }
+  }
+  await tx.document.deleteMany({ where: { id: { in: ids } } });
+}

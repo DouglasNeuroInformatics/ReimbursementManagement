@@ -420,3 +420,70 @@ Deno.test({ name: "Documents: DELETE /api/requests/:id/documents/:docId - unauth
   assertEquals(response.status, 401);
   assertExists(response.body.error);
 });
+
+Deno.test({ name: "Documents: PATCH reimbursement items - shrinking item count deletes orphaned docs and preserves overlap", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", undefined, {
+    reimbursement: {
+      items: [
+        { description: "early", amount: 10, date: new Date("2026-01-01") },
+        { description: "middle", amount: 20, date: new Date("2026-02-01") },
+        { description: "late", amount: 30, date: new Date("2026-03-01") },
+      ],
+    },
+  });
+
+  const seeded = await prisma.request.findUnique({
+    where: { id: request.id },
+    include: { reimbursement: { include: { items: { orderBy: { date: "asc" } } } } },
+  });
+  const items = seeded!.reimbursement!.items;
+  const docEarly = await createDocument(request.id, "early.pdf", "application/pdf", "early-key.pdf", user.id, items[0].id);
+  const docMiddle = await createDocument(request.id, "middle.pdf", "application/pdf", "middle-key.pdf", user.id, items[1].id);
+  const docLate = await createDocument(request.id, "late.pdf", "application/pdf", "late-key.pdf", user.id, items[2].id);
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  // Drop the latest item (position 2 by date asc).
+  const response = await makeRequest(API_BASE, {
+    method: "PATCH",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+    body: {
+      reimbursement: {
+        items: [
+          { description: "early", amount: 10, date: new Date("2026-01-01").toISOString() },
+          { description: "middle", amount: 20, date: new Date("2026-02-01").toISOString() },
+        ],
+      },
+    },
+  });
+
+  assertEquals(response.status, 200);
+
+  // Doc on the dropped item is gone.
+  const lateAfter = await prisma.document.findUnique({ where: { id: docLate.id } });
+  assertEquals(lateAfter, null);
+
+  // Docs on positions 0 and 1 survive and now reference the recreated items at the same positions.
+  const updated = await prisma.request.findUnique({
+    where: { id: request.id },
+    include: { reimbursement: { include: { items: { orderBy: { date: "asc" } } } } },
+  });
+  const newItems = updated!.reimbursement!.items;
+  assertEquals(newItems.length, 2);
+
+  const earlyAfter = await prisma.document.findUnique({ where: { id: docEarly.id } });
+  const middleAfter = await prisma.document.findUnique({ where: { id: docMiddle.id } });
+  assertExists(earlyAfter);
+  assertExists(middleAfter);
+  assertEquals(earlyAfter!.reimbursementItemId, newItems[0].id);
+  assertEquals(middleAfter!.reimbursementItemId, newItems[1].id);
+});
