@@ -454,3 +454,21 @@ Deno.test({ name: "Auth: POST /api/auth/logout - missing X-Requested-With is rej
   assertEquals(response.status, 403);
   assertExists(response.body.error);
 });
+
+Deno.test({ name: "Auth: rate-limit lets requests through when no IP headers in dev/test env", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(1000);
+
+  // No X-Real-IP / X-Forwarded-For. In production this would 429 (fail closed);
+  // in test/dev the middleware lets the request reach the handler.
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: "no-such-user@example.com", password: "wrong" },
+    skipIpHeader: true,
+  });
+
+  // The rate limiter passed through, so the handler ran and returned its
+  // own auth error (401) — not 429 from the rate limiter.
+  assertEquals(response.status, 401);
+});

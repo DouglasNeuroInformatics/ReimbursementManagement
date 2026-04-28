@@ -10,13 +10,27 @@ export class ApiError extends Error {
   }
 }
 
+// Public auth endpoints — backend exempts these from the X-Requested-With check.
+// Every other endpoint (including /api/auth/refresh, /api/auth/logout, and
+// PATCH /api/auth/me) requires the CSRF header.
+const NO_CSRF_PATHS = ['/api/auth/login', '/api/auth/register'] as const
+
+// Endpoints where a 401 should NOT trigger a refresh-and-retry. /api/auth/refresh
+// itself would loop; login/register 401s are credential failures, not session expiry.
+const NO_REFRESH_RETRY_PATHS = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'] as const
+
+function _matchesPath(url: string, paths: readonly string[]): boolean {
+  const path = url.split('?')[0]
+  return paths.includes(path as typeof paths[number])
+}
+
 let _refreshPromise: Promise<boolean> | null = null
 
 async function _doRefresh(): Promise<boolean> {
   try {
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'include',
     })
     return res.ok
@@ -27,12 +41,11 @@ async function _doRefresh(): Promise<boolean> {
 
 async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {}
-  
-  // Don't send CSRF header on auth endpoints (login/register/refresh)
-  if (!url.includes('/api/auth/') && !url.includes('/api/auth')) {
+
+  if (!_matchesPath(url, NO_CSRF_PATHS)) {
     headers['X-Requested-With'] = 'XMLHttpRequest'
   }
-  
+
   if (init.body && typeof init.body === 'string') {
     headers['Content-Type'] = 'application/json'
   }
@@ -44,7 +57,7 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   })
 
   if (!res.ok) {
-    if (res.status === 401 && !url.includes('/api/auth/')) {
+    if (res.status === 401 && !_matchesPath(url, NO_REFRESH_RETRY_PATHS)) {
       if (!_refreshPromise) {
         _refreshPromise = _doRefresh().finally(() => { _refreshPromise = null })
       }
