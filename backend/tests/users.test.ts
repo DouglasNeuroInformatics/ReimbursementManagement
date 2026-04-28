@@ -1,5 +1,5 @@
 import { assertEquals, assertExists, assert } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestUser, makeRequest, parseSetCookie, delay } from "./test-utils.ts";
+import { cleanupDatabase, createTestUsers, createTestUser, makeRequest, parseSetCookie } from "./test-utils.ts";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -140,7 +140,6 @@ Deno.test({ name: "Users: PATCH /api/users/:id - regular user cannot update", sa
 
 Deno.test({ name: "Users: PATCH /api/users/:id - non-existent user returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin } = await createTestUsers();
 
   const adminLogin = await makeRequest(API_BASE, {
@@ -163,7 +162,6 @@ Deno.test({ name: "Users: PATCH /api/users/:id - non-existent user returns 404",
 
 Deno.test({ name: "Users: PATCH /api/users/:id - assigning non-existent supervisor returns 404", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
 
   const adminLogin = await makeRequest(API_BASE, {
@@ -186,7 +184,6 @@ Deno.test({ name: "Users: PATCH /api/users/:id - assigning non-existent supervis
 
 Deno.test({ name: "Users: PATCH /api/users/:id - assigning supervisor with USER role returns 400", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
   const otherUser = await createTestUser("other@example.com", "TestPass123!", "Other", "User", "USER");
 

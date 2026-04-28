@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "jsr:@std/assert";
-import { cleanupDatabase, createTestUsers, createTestUser, createSupervisorAccount, makeRequest, parseSetCookie, delay } from "./test-utils.ts";
+import { cleanupDatabase, createTestUsers, createTestUser, createSupervisorAccount, makeRequest, parseSetCookie } from "./test-utils.ts";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -191,7 +191,6 @@ Deno.test({ name: "Accounts: GET /api/supervisors/:id/accounts/mine - cannot acc
 
 Deno.test({ name: "Accounts: POST - duplicate account number returns 409", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, supervisor } = await createTestUsers();
 
   await createSupervisorAccount(supervisor.id, "DUP-001", "First Budget");
@@ -219,7 +218,6 @@ Deno.test({ name: "Accounts: POST - duplicate account number returns 409", sanit
 
 Deno.test({ name: "Accounts: POST - reactivates deactivated account with same number", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, supervisor } = await createTestUsers();
 
   const adminLogin = await makeRequest(API_BASE, {
@@ -262,7 +260,6 @@ Deno.test({ name: "Accounts: POST - reactivates deactivated account with same nu
 
 Deno.test({ name: "Accounts: POST - cannot create account for user without supervisor role", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, user } = await createTestUsers();
 
   const adminLogin = await makeRequest(API_BASE, {
@@ -306,7 +303,6 @@ Deno.test({ name: "Accounts: GET - non-existent supervisor returns 404", sanitiz
 
 Deno.test({ name: "Accounts: PATCH - update to conflicting account number returns 409", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
-  await delay(500);
   const { admin, supervisor } = await createTestUsers();
 
   await createSupervisorAccount(supervisor.id, "EXISTING-001", "Existing Budget");
