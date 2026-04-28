@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from "hono";
 import { getCookie } from "hono/cookie";
 import { verifyAccessToken } from "../lib/jwt.ts";
 import { AppError } from "./error.ts";
+import { getEnv } from "../lib/env.ts";
 import type { AuthUser, HonoEnv } from "../types.ts";
 import type { Role } from "../generated/prisma/client.ts";
 
@@ -54,20 +55,30 @@ function _cleanupExpiredEntries(): void {
   }
 }
 
-function _getClientIp(c: Parameters<MiddlewareHandler>[0]): string {
+function _getClientIp(c: Parameters<MiddlewareHandler>[0]): string | null {
   // Only trust X-Forwarded-For when behind a known reverse proxy.
   // In this deployment, Caddy sets X-Real-IP which is more reliable
   // than X-Forwarded-For (which can be spoofed by the client).
   return (
     c.req.header("X-Real-IP") ??
     c.req.header("X-Forwarded-For")?.split(",")[0].trim() ??
-    "unknown"
+    null
   );
 }
 
 export const rateLimitAuth: MiddlewareHandler = async (c, next) => {
   _cleanupExpiredEntries();
   const ip = _getClientIp(c);
+  if (ip === null) {
+    // No usable client IP. In production we fail closed — Caddy is expected
+    // to set X-Real-IP, so a missing header means the request bypassed it.
+    // In dev/test we let it through so direct API calls still work.
+    if (getEnv().NODE_ENV === "production") {
+      throw new AppError(429, "Too many requests — please wait a minute and try again");
+    }
+    await next();
+    return;
+  }
   const now = Date.now();
   let record = _rateLimitStore.get(ip);
   if (!record || record.resetAt <= now) {
