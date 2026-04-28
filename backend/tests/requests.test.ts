@@ -879,6 +879,129 @@ Deno.test({ name: "Requests: POST /api/requests/:id/submit - unauthenticated", s
   assertExists(response.body.error);
 });
 
+Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVANCE without detail row", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/submit`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_ADVANCE with empty destination", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT");
+  // Seed an "empty" detail row directly — bypasses Zod .min(1) validation that would
+  // normally reject "" via the API. Models the bug where the upsert silently defaulted
+  // missing fields to empty strings.
+  await prisma.travelAdvanceDetail.create({
+    data: {
+      requestId: request.id,
+      destination: "",
+      purpose: "",
+      departureDate: new Date(),
+      returnDate: new Date(),
+      estimatedAmount: 0,
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/submit`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: POST /api/requests/:id/submit - rejects TRAVEL_REIMBURSEMENT with empty purpose", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT");
+  await prisma.travelReimbursementDetail.create({
+    data: {
+      requestId: request.id,
+      destination: "Toronto",
+      purpose: "",
+      departureDate: new Date(),
+      returnDate: new Date(),
+      totalAmount: 0,
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/submit`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 400);
+  assertExists(response.body.error);
+});
+
+Deno.test({ name: "Requests: POST /api/requests/:id/submit - accepts TRAVEL_ADVANCE with complete detail", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  await delay(500);
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT", undefined, {
+    travelAdvance: {
+      destination: "Toronto",
+      purpose: "Conference",
+      departureDate: new Date("2026-02-01"),
+      returnDate: new Date("2026-02-05"),
+      estimatedAmount: 500,
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "POST",
+    path: `/requests/${request.id}/submit`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  assertEquals(response.body.request.status, "SUBMITTED");
+});
+
 Deno.test({ name: "Requests: POST /api/requests/:id/revise - revise supervisor rejected request", sanitizeResources: false, sanitizeOps: false }, async () => {
   await cleanupDatabase();
   await delay(500);

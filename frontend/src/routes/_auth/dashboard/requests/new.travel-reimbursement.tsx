@@ -1,4 +1,5 @@
 import { dateInputToISO } from '../../../../utils/dates'
+import { sumAmounts } from '../../../../utils/currency'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useCreateRequest, useUpdateRequest, useSubmitRequest } from '../../../../hooks/useRequests'
@@ -47,7 +48,7 @@ function NewTravelReimbursementPage() {
             destination: form.destination, purpose: form.purpose,
             departureDate: form.departureDate ? dateInputToISO(form.departureDate) : undefined,
             returnDate: form.returnDate ? dateInputToISO(form.returnDate) : undefined,
-            totalAmount: validItems.reduce((s, it) => s + parseFloat(it.amount || '0'), 0),
+            totalAmount: sumAmounts(validItems),
             items: validItems.map((it) => ({ date: dateInputToISO(it.date), category: it.category, amount: parseFloat(it.amount), vendor: it.vendor || null, notes: it.notes || null })),
           },
         },
@@ -97,8 +98,8 @@ function NewTravelReimbursementPage() {
         </CardBody></Card>
       <Card><CardHeader><span className="font-semibold">Supporting Documents</span></CardHeader><CardBody><DocumentUpload files={files} onChange={setFiles} requestId={createdId} /></CardBody></Card>
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => handleSave(false)} loading={isLoading && !submitReq.isPending}>Save as Draft</Button>
-        <Button onClick={() => handleSave(true)} loading={submitReq.isPending}>Save & Submit</Button>
+        <Button variant="secondary" onClick={() => handleSave(false)} disabled={isLoading} loading={isLoading && !submitReq.isPending}>Save as Draft</Button>
+        <Button onClick={() => handleSave(true)} disabled={isLoading} loading={submitReq.isPending}>Save & Submit</Button>
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { PageSpinner } from '../../../../components/ui/Spinner'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { fmtDate, fmtDateTime } from '../../../../utils/dates'
-import { fmtCurrency } from '../../../../utils/currency'
+import { fmtCurrency, sumAmounts } from '../../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/')({ component: RequestDetailPage })
 
@@ -100,7 +100,7 @@ function RequestDetailPage() {
                 <tfoot className="border-t border-gray-200 bg-gray-50">
                   <tr>
                     <td colSpan={3} className="px-4 py-2 text-right font-semibold text-gray-700">Total</td>
-                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{fmtCurrency(request.reimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{fmtCurrency(sumAmounts(request.reimbursement.items))}</td>
                     <td />
                   </tr>
                 </tfoot>
@@ -138,7 +138,7 @@ function RequestDetailPage() {
                 <tfoot className="border-t border-gray-200 bg-gray-50">
                   <tr>
                     <td className="py-1.5 text-right font-semibold text-gray-700">Total</td>
-                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(request.travelAdvance.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(sumAmounts(request.travelAdvance.items))}</td>
                     <td />
                   </tr>
                 </tfoot>
@@ -174,7 +174,7 @@ function RequestDetailPage() {
                 <tfoot className="border-t border-gray-200 bg-gray-50">
                   <tr>
                     <td colSpan={2} className="py-1.5 text-right font-semibold text-gray-700">Total</td>
-                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(request.travelReimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td className="py-1.5 text-right font-semibold text-gray-900">{fmtCurrency(sumAmounts(request.travelReimbursement.items))}</td>
                   </tr>
                 </tfoot>
               </table>

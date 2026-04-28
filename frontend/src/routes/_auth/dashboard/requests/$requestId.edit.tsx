@@ -4,6 +4,7 @@ import { useRequest, useUpdateRequest, useSubmitRequest } from '../../../../hook
 import { useUploadDocument } from '../../../../hooks/useDocuments'
 import { useAuth } from '../../../../hooks/useAuth'
 import { dateInputToISO, fmtDate } from '../../../../utils/dates'
+import { sumAmounts } from '../../../../utils/currency'
 import { Button } from '../../../../components/ui/Button'
 import { Input } from '../../../../components/ui/Input'
 import { Textarea } from '../../../../components/ui/Textarea'
@@ -201,7 +202,7 @@ function EditRequestPage() {
           purpose: taForm.purpose,
           departureDate: taForm.departureDate ? dateInputToISO(taForm.departureDate) : undefined,
           returnDate: taForm.returnDate ? dateInputToISO(taForm.returnDate) : undefined,
-          estimatedAmount: validItems.reduce((s, it) => s + parseFloat(it.amount || '0'), 0),
+          estimatedAmount: sumAmounts(validItems),
           items: validItems.map((it) => ({
             category: it.category,
             amount: parseFloat(it.amount),
@@ -220,7 +221,7 @@ function EditRequestPage() {
           purpose: trForm.purpose,
           departureDate: trForm.departureDate ? dateInputToISO(trForm.departureDate) : undefined,
           returnDate: trForm.returnDate ? dateInputToISO(trForm.returnDate) : undefined,
-          totalAmount: validItems.reduce((s, it) => s + parseFloat(it.amount || '0'), 0),
+          totalAmount: sumAmounts(validItems),
           items: validItems.map((it) => ({
             date: dateInputToISO(it.date),
             category: it.category,

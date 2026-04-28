@@ -42,8 +42,8 @@ router.post(
     const { id: supervisorId, role } = c.get("user");
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
-    await approvalService.supervisorReject(c.req.param("id"), supervisorId, comment, role);
-    return c.json({ success: true });
+    const request = await approvalService.supervisorReject(c.req.param("id"), supervisorId, comment, role);
+    return c.json({ request });
   },
 );
 
@@ -54,8 +54,8 @@ router.post(
     const { id: adminId } = c.get("user");
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
-    await approvalService.financeApprove(c.req.param("id"), adminId, comment);
-    return c.json({ success: true });
+    const request = await approvalService.financeApprove(c.req.param("id"), adminId, comment);
+    return c.json({ request });
   },
 );
 
@@ -66,8 +66,8 @@ router.post(
     const { id: adminId } = c.get("user");
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
-    await approvalService.financeReject(c.req.param("id"), adminId, comment);
-    return c.json({ success: true });
+    const request = await approvalService.financeReject(c.req.param("id"), adminId, comment);
+    return c.json({ request });
   },
 );
 
@@ -78,8 +78,8 @@ router.post(
     const { id: adminId } = c.get("user");
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
-    await approvalService.markPaid(c.req.param("id"), adminId, comment);
-    return c.json({ success: true });
+    const request = await approvalService.markPaid(c.req.param("id"), adminId, comment);
+    return c.json({ request });
   },
 );
 

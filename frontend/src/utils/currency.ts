@@ -14,10 +14,20 @@ export function fmtCurrency(value: number | string): string {
   return formatter.format(n)
 }
 
+/** Sum amounts as integer cents to avoid IEEE-754 accumulation error. */
+export function sumAmounts(items: ReadonlyArray<{ amount: string | number }>): number {
+  let cents = 0
+  for (const it of items) {
+    const n = typeof it.amount === 'string' ? parseFloat(it.amount) : it.amount
+    if (!Number.isNaN(n)) cents += Math.round(n * 100)
+  }
+  return cents / 100
+}
+
 /** Extract the total amount from any request type, or null if unknown. */
 export function getRequestTotal(request: Request): number | null {
   if (request.reimbursement) {
-    return request.reimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0)
+    return sumAmounts(request.reimbursement.items)
   }
   if (request.travelAdvance) {
     return parseFloat(request.travelAdvance.estimatedAmount)

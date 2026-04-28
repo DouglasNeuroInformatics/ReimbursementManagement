@@ -7,7 +7,7 @@ import { PageSpinner } from '../../../components/ui/Spinner'
 import { SupervisorApprovalForm } from '../../../components/forms/ApprovalForm'
 import { DocumentUpload } from '../../../components/forms/DocumentUpload'
 import { fmtDate } from '../../../utils/dates'
-import { fmtCurrency } from '../../../utils/currency'
+import { fmtCurrency, sumAmounts } from '../../../utils/currency'
 
 export const Route = createFileRoute('/_auth/review/$requestId')({ component: ReviewDetailPage })
 
@@ -81,7 +81,7 @@ function ReviewDetailPage() {
                 <tfoot className="border-t border-gray-200 bg-gray-50">
                   <tr>
                     <td colSpan={3} className="px-4 py-2 text-right font-semibold text-gray-700">Total</td>
-                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{fmtCurrency(request.reimbursement.items.reduce((sum, it) => sum + parseFloat(it.amount), 0))}</td>
+                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{fmtCurrency(sumAmounts(request.reimbursement.items))}</td>
                     <td />
                   </tr>
                 </tfoot>

@@ -253,7 +253,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - reject 
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.success, true);
+  assertExists(response.body.request);
 
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
@@ -293,7 +293,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/supervisor-reject - financi
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.success, true);
+  assertExists(response.body.request);
 
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
@@ -407,7 +407,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-approve - approve s
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.success, true);
+  assertExists(response.body.request);
 
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
@@ -502,7 +502,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/finance-reject - reject sup
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.success, true);
+  assertExists(response.body.request);
 
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
@@ -622,7 +622,7 @@ Deno.test({ name: "Approvals: POST /api/requests/:id/mark-paid - mark finance ap
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.success, true);
+  assertExists(response.body.request);
 
   const getRequestResponse = await makeRequest(API_BASE, {
     method: "GET",
