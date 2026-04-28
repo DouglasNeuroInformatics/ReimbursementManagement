@@ -103,11 +103,7 @@ export async function getRequests(
   if (filters.scope === 'own' || role === 'USER') {
     where.userId = userId;
   } else if (role === 'SUPERVISOR') {
-    const subs = await prisma.user.findMany({
-      where: { supervisorId: userId },
-      select: { id: true },
-    });
-    where.userId = { in: [userId, ...subs.map((u) => u.id)] };
+    where.user = { OR: [{ id: userId }, { supervisorId: userId }] };
   }
 
   const take = Math.min(filters.limit ?? 50, 100);
