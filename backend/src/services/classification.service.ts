@@ -9,12 +9,51 @@ const CLASSIFIABLE_STATUSES: RequestStatus[] = [
 
 type ItemType = "reimbursement" | "travel_advance" | "travel_expense";
 
+type ItemHandler = {
+  label: string;
+  findRequestId: (id: string) => Promise<{ detail: { requestId: string } } | null>;
+  setCode: (id: string, codeSecondaire: string) => Promise<unknown>;
+};
+
+const ITEM_HANDLERS: Record<ItemType, ItemHandler> = {
+  reimbursement: {
+    label: "Reimbursement item",
+    findRequestId: (id) =>
+      prisma.reimbursementItem.findUnique({
+        where: { id },
+        select: { detail: { select: { requestId: true } } },
+      }),
+    setCode: (id, codeSecondaire) =>
+      prisma.reimbursementItem.update({ where: { id }, data: { codeSecondaire } }),
+  },
+  travel_advance: {
+    label: "Travel advance item",
+    findRequestId: (id) =>
+      prisma.travelAdvanceItem.findUnique({
+        where: { id },
+        select: { detail: { select: { requestId: true } } },
+      }),
+    setCode: (id, codeSecondaire) =>
+      prisma.travelAdvanceItem.update({ where: { id }, data: { codeSecondaire } }),
+  },
+  travel_expense: {
+    label: "Travel expense item",
+    findRequestId: (id) =>
+      prisma.travelExpenseItem.findUnique({
+        where: { id },
+        select: { detail: { select: { requestId: true } } },
+      }),
+    setCode: (id, codeSecondaire) =>
+      prisma.travelExpenseItem.update({ where: { id }, data: { codeSecondaire } }),
+  },
+};
+
 export async function classifyItem(
   requestId: string,
   itemId: string,
   itemType: ItemType,
   codeSecondaire: string,
-  adminId: string,
+  _adminId: string,
 ) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request) throw new AppError(404, "Request not found");
@@ -25,46 +64,12 @@ export async function classifyItem(
     );
   }
 
-  if (itemType === "reimbursement") {
-    const item = await prisma.reimbursementItem.findUnique({
-      where: { id: itemId },
-      include: { detail: { select: { requestId: true } } },
-    });
-    if (!item || item.detail.requestId !== requestId) {
-      throw new AppError(404, "Reimbursement item not found in this request");
-    }
-    await prisma.reimbursementItem.update({
-      where: { id: itemId },
-      data: { codeSecondaire },
-    });
-  } else if (itemType === "travel_advance") {
-    const item = await prisma.travelAdvanceItem.findUnique({
-      where: { id: itemId },
-      include: { detail: { select: { requestId: true } } },
-    });
-    if (!item || item.detail.requestId !== requestId) {
-      throw new AppError(404, "Travel advance item not found in this request");
-    }
-    await prisma.travelAdvanceItem.update({
-      where: { id: itemId },
-      data: { codeSecondaire },
-    });
-  } else if (itemType === "travel_expense") {
-    const item = await prisma.travelExpenseItem.findUnique({
-      where: { id: itemId },
-      include: { detail: { select: { requestId: true } } },
-    });
-    if (!item || item.detail.requestId !== requestId) {
-      throw new AppError(
-        404,
-        "Travel expense item not found in this request",
-      );
-    }
-    await prisma.travelExpenseItem.update({
-      where: { id: itemId },
-      data: { codeSecondaire },
-    });
+  const handler = ITEM_HANDLERS[itemType];
+  const item = await handler.findRequestId(itemId);
+  if (!item || item.detail.requestId !== requestId) {
+    throw new AppError(404, `${handler.label} not found in this request`);
   }
+  await handler.setCode(itemId, codeSecondaire);
 
   return { success: true, itemId, codeSecondaire };
 }
