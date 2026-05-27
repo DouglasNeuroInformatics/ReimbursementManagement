@@ -697,3 +697,59 @@ Deno.test({ name: "Multi-signoff: full workflow DRAFT -> SUBMITTED -> SUP_APPROV
   const distinctActors = new Set(financeApprovals.map((a: { actorId: string }) => a.actorId));
   assertEquals(distinctActors.size, 3);
 });
+
+Deno.test({ name: "Multi-signoff: concurrent approvers serialize on the request row", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { admin, admin2, admin3, supervisor, user } = await createTestUsers();
+  const account = await createSupervisorAccount(supervisor.id, "RACE-001", "Race Account");
+
+  // No items so the final-signoff classification gate is satisfied trivially.
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "SUPERVISOR_APPROVED", "Concurrent Approvals");
+  await createApproval(request.id, supervisor.id, "APPROVE", "SUPERVISOR", account.id);
+
+  const [login1, login2, login3] = await Promise.all([
+    makeRequest(API_BASE, { method: "POST", path: "/auth/login", body: { email: admin.email, password: admin.password } }),
+    makeRequest(API_BASE, { method: "POST", path: "/auth/login", body: { email: admin2.email, password: admin2.password } }),
+    makeRequest(API_BASE, { method: "POST", path: "/auth/login", body: { email: admin3.email, password: admin3.password } }),
+  ]);
+  const cookies1 = parseSetCookie(login1.headers.get("set-cookie"));
+  const cookies2 = parseSetCookie(login2.headers.get("set-cookie"));
+  const cookies3 = parseSetCookie(login3.headers.get("set-cookie"));
+
+  // Fire three approvals concurrently. Without row-level locking on Request,
+  // all three would observe count = 0 and write FINANCE_REVIEWING, leaving
+  // the request stuck below the required threshold despite holding all signoffs.
+  const responses = await Promise.all([
+    makeRequest(API_BASE, {
+      method: "POST",
+      path: `/requests/${request.id}/finance-approve`,
+      cookieHeader: cookies1.cookieHeader,
+      body: { comment: "Concurrent 1" },
+    }),
+    makeRequest(API_BASE, {
+      method: "POST",
+      path: `/requests/${request.id}/finance-approve`,
+      cookieHeader: cookies2.cookieHeader,
+      body: { comment: "Concurrent 2" },
+    }),
+    makeRequest(API_BASE, {
+      method: "POST",
+      path: `/requests/${request.id}/finance-approve`,
+      cookieHeader: cookies3.cookieHeader,
+      body: { comment: "Concurrent 3" },
+    }),
+  ]);
+
+  for (const r of responses) {
+    assertEquals(r.status, 200);
+  }
+
+  const finalRequest = await prisma.request.findUnique({
+    where: { id: request.id },
+    include: { approvals: { where: { stage: "FINANCE", action: "APPROVE" } } },
+  });
+  assertEquals(finalRequest!.status, "FINANCE_APPROVED");
+  assertEquals(finalRequest!.approvals.length, 3);
+  const distinctActors = new Set(finalRequest!.approvals.map((a) => a.actorId));
+  assertEquals(distinctActors.size, 3);
+});

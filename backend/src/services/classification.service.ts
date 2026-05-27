@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.ts";
 import { AppError } from "../middleware/error.ts";
-import type { RequestStatus } from "../generated/prisma/client.ts";
+import type { Prisma, RequestStatus } from "../generated/prisma/client.ts";
 
 const CLASSIFIABLE_STATUSES: RequestStatus[] = [
   "SUPERVISOR_APPROVED",
@@ -71,8 +71,9 @@ export async function classifyItem(
 
 export async function allItemsClassified(
   requestId: string,
+  client: Prisma.TransactionClient | typeof prisma = prisma,
 ): Promise<boolean> {
-  const request = await prisma.request.findUnique({
+  const request = await client.request.findUnique({
     where: { id: requestId },
     include: {
       reimbursement: { include: { items: true } },

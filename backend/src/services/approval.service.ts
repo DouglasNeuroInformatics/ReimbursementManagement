@@ -16,19 +16,6 @@ function getRequiredApprovals(): number {
   return getEnv().REQUIRED_FINANCE_APPROVALS;
 }
 
-async function getDistinctFinanceApprovals(requestId: string): Promise<string[]> {
-  const approvals = await prisma.approval.findMany({
-    where: {
-      requestId,
-      stage: "FINANCE",
-      action: "APPROVE",
-    },
-    select: { actorId: true },
-    distinct: ["actorId"],
-  });
-  return approvals.map((a) => a.actorId);
-}
-
 export async function supervisorApprove(
   requestId: string,
   supervisorId: string,
@@ -124,42 +111,45 @@ export async function financeApprove(
   adminId: string,
   comment?: string,
 ) {
-  const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
-
-  if (
-    request.status !== "SUPERVISOR_APPROVED" &&
-    request.status !== "FINANCE_REVIEWING"
-  ) {
-    throw new AppError(400, `Cannot approve request with status: ${request.status}`);
-  }
-
-  const existingApproverIds = await getDistinctFinanceApprovals(requestId);
-  if (existingApproverIds.includes(adminId)) {
-    throw new AppError(400, "You have already approved this request");
-  }
-
   const required = getRequiredApprovals();
-  const newCount = existingApproverIds.length + 1;
-
-  const willBeFullyApproved = newCount >= required;
-
-  if (willBeFullyApproved) {
-    const classified = await allItemsClassified(requestId);
-    if (!classified) {
-      throw new AppError(
-        400,
-        "All items must be classified with a code secondaire before final approval",
-      );
-    }
-  }
-
-  const newStatus = willBeFullyApproved ? "FINANCE_APPROVED" : "FINANCE_REVIEWING";
 
   return prisma.$transaction(async (tx) => {
+    // Serialize concurrent approvers on the same request. Without this lock,
+    // two admins racing on the final signoff can both observe count = N-1 and
+    // both decide they are the finalizer (or neither does), producing the
+    // wrong final status or count.
+    const locked = await tx.$queryRaw<Array<{ id: string; status: string }>>`
+      SELECT id, status FROM "Request" WHERE id = ${requestId} FOR UPDATE
+    `;
+    if (locked.length === 0) throw new AppError(404, "Request not found");
+    const currentStatus = locked[0].status;
+    if (currentStatus !== "SUPERVISOR_APPROVED" && currentStatus !== "FINANCE_REVIEWING") {
+      throw new AppError(400, `Cannot approve request with status: ${currentStatus}`);
+    }
+
+    const existing = await tx.approval.findMany({
+      where: { requestId, stage: "FINANCE", action: "APPROVE" },
+      select: { actorId: true },
+      distinct: ["actorId"],
+    });
+    if (existing.some((a) => a.actorId === adminId)) {
+      throw new AppError(400, "You have already approved this request");
+    }
+
+    const willBeFullyApproved = existing.length + 1 >= required;
+    if (willBeFullyApproved) {
+      const classified = await allItemsClassified(requestId, tx);
+      if (!classified) {
+        throw new AppError(
+          400,
+          "All items must be classified with a code secondaire before final approval",
+        );
+      }
+    }
+
     await tx.request.update({
       where: { id: requestId },
-      data: { status: newStatus },
+      data: { status: willBeFullyApproved ? "FINANCE_APPROVED" : "FINANCE_REVIEWING" },
     });
     await tx.approval.create({
       data: {
