@@ -80,11 +80,10 @@ export function useDeleteRequest() {
   })
 }
 
-export function useSupervisorApprove(requestId: string) {
+function useRequestAction<TBody>(requestId: string, path: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { accountId: string; comment?: string }) =>
-      api.post(`/api/requests/${requestId}/supervisor-approve`, data),
+    mutationFn: (data: TBody) => api.post(`/api/requests/${requestId}/${path}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['requests', requestId] })
       qc.invalidateQueries({ queryKey: ['requests'] })
@@ -92,53 +91,20 @@ export function useSupervisorApprove(requestId: string) {
   })
 }
 
-export function useSupervisorReject(requestId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { comment?: string }) =>
-      api.post(`/api/requests/${requestId}/supervisor-reject`, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['requests', requestId] })
-      qc.invalidateQueries({ queryKey: ['requests'] })
-    },
-  })
-}
+export const useSupervisorApprove = (requestId: string) =>
+  useRequestAction<{ accountId: string; comment?: string }>(requestId, 'supervisor-approve')
 
-export function useFinanceApprove(requestId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { comment?: string }) =>
-      api.post(`/api/requests/${requestId}/finance-approve`, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['requests', requestId] })
-      qc.invalidateQueries({ queryKey: ['requests'] })
-    },
-  })
-}
+export const useSupervisorReject = (requestId: string) =>
+  useRequestAction<{ comment?: string }>(requestId, 'supervisor-reject')
 
-export function useFinanceReject(requestId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { comment?: string }) =>
-      api.post(`/api/requests/${requestId}/finance-reject`, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['requests', requestId] })
-      qc.invalidateQueries({ queryKey: ['requests'] })
-    },
-  })
-}
+export const useFinanceApprove = (requestId: string) =>
+  useRequestAction<{ comment?: string }>(requestId, 'finance-approve')
 
-export function useMarkPaid(requestId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data: { comment?: string }) =>
-      api.post(`/api/requests/${requestId}/mark-paid`, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['requests', requestId] })
-      qc.invalidateQueries({ queryKey: ['requests'] })
-    },
-  })
-}
+export const useFinanceReject = (requestId: string) =>
+  useRequestAction<{ comment?: string }>(requestId, 'finance-reject')
+
+export const useMarkPaid = (requestId: string) =>
+  useRequestAction<{ comment?: string }>(requestId, 'mark-paid')
 
 export function useClassifyItem(requestId: string) {
   const qc = useQueryClient()
