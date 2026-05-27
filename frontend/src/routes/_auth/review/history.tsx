@@ -6,7 +6,7 @@ import { PageSpinner } from '../../../components/ui/Spinner'
 
 export const Route = createFileRoute('/_auth/review/history')({ component: RequestHistoryPage })
 
-const HISTORY_STATUSES = ['SUPERVISOR_APPROVED', 'FINANCE_APPROVED', 'FINANCE_REJECTED', 'PAID']
+const HISTORY_STATUSES = ['SUPERVISOR_APPROVED', 'FINANCE_REVIEWING', 'FINANCE_APPROVED', 'FINANCE_REJECTED', 'PAID']
 
 function RequestHistoryPage() {
   const { data: allRequests = [], isLoading } = useRequests()

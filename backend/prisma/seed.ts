@@ -1,9 +1,11 @@
 /**
- * Development seed script — creates three test users:
+ * Development seed script — creates five test users:
  *
- *   admin@test.com      / Test1234!  → FINANCIAL_ADMIN
- *   supervisor@test.com / Test1234!  → SUPERVISOR  (reports to admin)
- *   user@test.com       / Test1234!  → USER        (reports to supervisor)
+ *   admin@test.com       / Test1234!  → FINANCIAL_ADMIN
+ *   admin2@test.com      / Test1234!  → FINANCIAL_ADMIN
+ *   admin3@test.com      / Test1234!  → FINANCIAL_ADMIN
+ *   supervisor@test.com  / Test1234!  → SUPERVISOR  (reports to admin)
+ *   user@test.com        / Test1234!  → USER        (reports to supervisor)
  *
  * Also creates billing accounts for the supervisor and admin.
  *
@@ -51,6 +53,34 @@ async function seed() {
     },
   });
   console.log(`Created FINANCIAL_ADMIN: ${admin.email}`);
+
+  // 1b. Second Financial Admin
+  const admin2 = await prisma.user.create({
+    data: {
+      email: "admin2@test.com",
+      passwordHash,
+      firstName: "Bob",
+      lastName: "Admin",
+      role: "FINANCIAL_ADMIN",
+      jobPosition: "Finance Manager",
+      updatedAt: now,
+    },
+  });
+  console.log(`Created FINANCIAL_ADMIN: ${admin2.email}`);
+
+  // 1c. Third Financial Admin
+  const admin3 = await prisma.user.create({
+    data: {
+      email: "admin3@test.com",
+      passwordHash,
+      firstName: "Carol",
+      lastName: "Admin",
+      role: "FINANCIAL_ADMIN",
+      jobPosition: "Finance Officer",
+      updatedAt: now,
+    },
+  });
+  console.log(`Created FINANCIAL_ADMIN: ${admin3.email}`);
 
   // 2. Supervisor (reports to admin)
   const supervisor = await prisma.user.create({
@@ -272,24 +302,28 @@ async function seed() {
                 amount: 48.0,
                 date: new Date("2026-01-10"),
                 vendor: "GitHub",
+                codeSecondaire: "65030",
               },
               {
                 description: "Notion Business",
                 amount: 96.0,
                 date: new Date("2026-01-10"),
                 vendor: "Notion Labs",
+                codeSecondaire: "61795",
               },
               {
                 description: "Adobe Creative Cloud",
                 amount: 659.88,
                 date: new Date("2026-01-12"),
                 vendor: "Adobe",
+                codeSecondaire: "65030",
               },
               {
                 description: "AWS Educate",
                 amount: 0.0,
                 date: new Date("2026-01-12"),
                 vendor: "Amazon Web Services",
+                codeSecondaire: "61630",
               },
             ],
           },
@@ -311,6 +345,20 @@ async function seed() {
             stage: "FINANCE",
             comment: "Approved for payment. Invoice #INV-2026-0089",
             createdAt: new Date("2026-01-18"),
+          },
+          {
+            actorId: admin2.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Second approval.",
+            createdAt: new Date("2026-01-18"),
+          },
+          {
+            actorId: admin3.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Third approval.",
+            createdAt: new Date("2026-01-19"),
           },
           {
             actorId: admin.id,
@@ -415,12 +463,14 @@ async function seed() {
                 amount: 425.0,
                 date: new Date("2026-02-08"),
                 vendor: "C'est quoi la vie",
+                codeSecondaire: "66390",
               },
               {
                 description: "Activity supplies",
                 amount: 67.5,
                 date: new Date("2026-02-08"),
                 vendor: "Costco",
+                codeSecondaire: "64040",
               },
             ],
           },
@@ -442,6 +492,20 @@ async function seed() {
             stage: "FINANCE",
             comment: "Approved for payment. Reference: PAY-2026-0210",
             createdAt: new Date("2026-02-12"),
+          },
+          {
+            actorId: admin2.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Second approval.",
+            createdAt: new Date("2026-02-12"),
+          },
+          {
+            actorId: admin3.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Third approval.",
+            createdAt: new Date("2026-02-13"),
           },
         ],
       },
@@ -577,9 +641,11 @@ async function seed() {
 
   console.log("\n--- Dev seed complete ---");
   if (Deno.env.get("DEMO_MODE") === "true") {
-    console.log(`  admin@test.com      / ${PASSWORD}  (FINANCIAL_ADMIN)`);
-    console.log(`  supervisor@test.com / ${PASSWORD}  (SUPERVISOR)`);
-    console.log(`  user@test.com       / ${PASSWORD}  (USER)`);
+    console.log(`  admin@test.com       / ${PASSWORD}  (FINANCIAL_ADMIN)`);
+    console.log(`  admin2@test.com      / ${PASSWORD}  (FINANCIAL_ADMIN)`);
+    console.log(`  admin3@test.com      / ${PASSWORD}  (FINANCIAL_ADMIN)`);
+    console.log(`  supervisor@test.com  / ${PASSWORD}  (SUPERVISOR)`);
+    console.log(`  user@test.com        / ${PASSWORD}  (USER)`);
   }
 }
 

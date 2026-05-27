@@ -9,6 +9,7 @@ import approvalRoutes from "./src/routes/approvals.ts";
 import documentRoutes from "./src/routes/documents.ts";
 import userRoutes from "./src/routes/users.ts";
 import accountRoutes from "./src/routes/accounts.ts";
+import codeSecondaireRoutes from "./src/routes/code-secondaire.ts";
 import { initBucket } from "./src/lib/s3.ts";
 
 const env = getEnv();
@@ -46,6 +47,7 @@ api.route("/requests", requestRoutes);
 api.route("/requests", approvalRoutes);
 api.route("/requests", documentRoutes);
 api.route("/users", userRoutes);
+api.route("/code-secondaire", codeSecondaireRoutes);
 
 app.route("/api", api);
 

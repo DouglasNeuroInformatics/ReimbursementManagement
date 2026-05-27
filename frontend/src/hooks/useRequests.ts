@@ -19,7 +19,10 @@ export function useRequest(id: string | undefined) {
   return useQuery({
     queryKey: ['requests', id],
     queryFn: () =>
-      api.get<{ request: Request }>(`/api/requests/${id}`).then((r) => r.request),
+      api.get<{ request: Request; requiredFinanceApprovals: number }>(`/api/requests/${id}`).then((r) => ({
+        request: r.request,
+        requiredFinanceApprovals: r.requiredFinanceApprovals,
+      })),
     enabled: !!id,
   })
 }
@@ -134,5 +137,25 @@ export function useMarkPaid(requestId: string) {
       qc.invalidateQueries({ queryKey: ['requests', requestId] })
       qc.invalidateQueries({ queryKey: ['requests'] })
     },
+  })
+}
+
+export function useClassifyItem(requestId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { itemId: string; itemType: 'reimbursement' | 'travel_advance' | 'travel_expense'; codeSecondaire: string }) =>
+      api.patch(`/api/requests/${requestId}/classify-item`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['requests', requestId] })
+    },
+  })
+}
+
+export function useCodeSecondaire() {
+  return useQuery({
+    queryKey: ['code-secondaire'],
+    queryFn: () =>
+      api.get<{ codes: Array<{ code: string; description: string }> }>('/api/code-secondaire').then((r) => r.codes),
+    staleTime: Infinity,
   })
 }

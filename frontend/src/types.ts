@@ -5,6 +5,7 @@ export type RequestStatus =
   | 'SUBMITTED'
   | 'SUPERVISOR_APPROVED'
   | 'SUPERVISOR_REJECTED'
+  | 'FINANCE_REVIEWING'
   | 'FINANCE_APPROVED'
   | 'FINANCE_REJECTED'
   | 'PAID'
@@ -55,6 +56,7 @@ export interface ReimbursementItem {
   date: string
   vendor: string | null
   notes: string | null
+  codeSecondaire: string | null
   documents: Document[]
 }
 
@@ -68,6 +70,7 @@ export interface TravelAdvanceItem {
   category: string
   amount: string
   notes: string | null
+  codeSecondaire: string | null
 }
 
 export interface TravelAdvanceDetail {
@@ -87,6 +90,7 @@ export interface TravelExpenseItem {
   amount: string
   vendor: string | null
   notes: string | null
+  codeSecondaire: string | null
 }
 
 export interface TravelReimbursementDetail {

@@ -26,7 +26,8 @@ function toDateInput(iso: string | null | undefined): string {
 function EditRequestPage() {
   const { requestId } = Route.useParams()
   const { user } = useAuth()
-  const { data: request, isLoading } = useRequest(requestId)
+  const { data, isLoading } = useRequest(requestId)
+  const request = data?.request
 
   if (isLoading) return <PageSpinner />
   if (!request) return <div className="text-center py-12 text-gray-500">Request not found.</div>

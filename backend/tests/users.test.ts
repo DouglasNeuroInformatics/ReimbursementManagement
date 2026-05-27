@@ -224,7 +224,7 @@ Deno.test({ name: "Users: GET /api/users - returns all users with supervisor inf
   });
 
   assertEquals(response.status, 200);
-  assertEquals(response.body.users.length, 3);
+  assertEquals(response.body.users.length, 5);
 
   // Find the regular user and verify supervisor info
   const regularUser = response.body.users.find((u: any) => u.role === "USER");

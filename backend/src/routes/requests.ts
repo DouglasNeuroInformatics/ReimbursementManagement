@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import * as requestService from "../services/request.service.ts";
 import { authenticate } from "../middleware/auth.ts";
+import { getEnv } from "../lib/env.ts";
 import type { HonoEnv } from "../types.ts";
 
 const router = new Hono<HonoEnv>();
@@ -11,7 +12,7 @@ router.use("*", authenticate);
 const listQuerySchema = z.object({
   status: z.enum([
     "DRAFT", "SUBMITTED", "SUPERVISOR_APPROVED", "SUPERVISOR_REJECTED",
-    "FINANCE_APPROVED", "FINANCE_REJECTED", "PAID",
+    "FINANCE_REVIEWING", "FINANCE_APPROVED", "FINANCE_REJECTED", "PAID",
   ]).optional(),
   type: z.enum(["REIMBURSEMENT", "TRAVEL_ADVANCE", "TRAVEL_REIMBURSEMENT"]).optional(),
   scope: z.enum(["own"]).optional(),
@@ -108,7 +109,7 @@ router.post("/", async (c) => {
 router.get("/:id", async (c) => {
   const { id: userId, role } = c.get("user");
   const request = await requestService.getRequest(c.req.param("id"), userId, role);
-  return c.json({ request });
+  return c.json({ request, requiredFinanceApprovals: getEnv().REQUIRED_FINANCE_APPROVALS });
 });
 
 router.patch("/:id", async (c) => {

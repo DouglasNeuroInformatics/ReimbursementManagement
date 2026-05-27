@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import * as approvalService from "../services/approval.service.ts";
+import * as classificationService from "../services/classification.service.ts";
 import { authenticate, requireRole } from "../middleware/auth.ts";
+import { codeSecondaireSchema } from "../lib/code-secondaire.ts";
+import { getEnv } from "../lib/env.ts";
 import type { HonoEnv } from "../types.ts";
 
 const router = new Hono<HonoEnv>();
@@ -15,6 +18,12 @@ const supervisorApproveSchema = z.object({
 
 const commentSchema = z.object({
   comment: z.string().max(2000).optional(),
+});
+
+const classifyItemSchema = z.object({
+  itemId: z.string().uuid(),
+  itemType: z.enum(["reimbursement", "travel_advance", "travel_expense"]),
+  codeSecondaire: codeSecondaireSchema,
 });
 
 router.post(
@@ -55,7 +64,7 @@ router.post(
     const body = await c.req.json();
     const { comment } = commentSchema.parse(body);
     const request = await approvalService.financeApprove(c.req.param("id"), adminId, comment);
-    return c.json({ request });
+    return c.json({ request, requiredFinanceApprovals: getEnv().REQUIRED_FINANCE_APPROVALS });
   },
 );
 
@@ -80,6 +89,24 @@ router.post(
     const { comment } = commentSchema.parse(body);
     const request = await approvalService.markPaid(c.req.param("id"), adminId, comment);
     return c.json({ request });
+  },
+);
+
+router.patch(
+  "/:id/classify-item",
+  requireRole("FINANCIAL_ADMIN"),
+  async (c) => {
+    const { id: adminId } = c.get("user");
+    const body = await c.req.json();
+    const { itemId, itemType, codeSecondaire } = classifyItemSchema.parse(body);
+    const result = await classificationService.classifyItem(
+      c.req.param("id"),
+      itemId,
+      itemType,
+      codeSecondaire,
+      adminId,
+    );
+    return c.json(result);
   },
 );
 

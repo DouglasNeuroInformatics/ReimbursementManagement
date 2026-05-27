@@ -14,7 +14,8 @@ export const Route = createFileRoute('/_auth/review/$requestId')({ component: Re
 function ReviewDetailPage() {
   const { requestId } = Route.useParams()
   const { user } = useAuth()
-  const { data: request, isLoading } = useRequest(requestId)
+  const { data, isLoading } = useRequest(requestId)
+  const request = data?.request
   const approve = useSupervisorApprove(requestId)
   const reject = useSupervisorReject(requestId)
   const navigate = useNavigate()

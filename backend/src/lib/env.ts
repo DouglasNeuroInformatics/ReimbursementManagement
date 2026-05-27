@@ -13,6 +13,7 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(8000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   DEMO_MODE: z.enum(["true", "false"]).default("false"),
+  REQUIRED_FINANCE_APPROVALS: z.coerce.number().int().positive().default(3),
 });
 
 export type Env = z.infer<typeof schema>;

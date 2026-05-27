@@ -58,24 +58,33 @@ This is a **multi-stage approval workflow system** for expense reimbursements an
 
 **Request Flow:**
 ```
-DRAFT → SUBMITTED → SUPERVISOR_APPROVED → FINANCE_APPROVED → PAID
-                   ↓ (rejected)        ↓ (rejected)
-         SUPERVISOR_REJECTED    FINANCE_REJECTED (can revise & resubmit)
+DRAFT → SUBMITTED → SUPERVISOR_APPROVED → FINANCE_REVIEWING → FINANCE_APPROVED → PAID
+                   ↓ (rejected)                              ↓ (rejected)
+         SUPERVISOR_REJECTED                       FINANCE_REJECTED (can revise & resubmit)
 ```
+
+Finance approval requires `REQUIRED_FINANCE_APPROVALS` (default 3) **distinct** FINANCIAL_ADMIN signoffs:
+1. 1st signoff: `SUPERVISOR_APPROVED` → `FINANCE_REVIEWING`
+2. 2nd signoff: stays `FINANCE_REVIEWING`
+3. Final signoff: `FINANCE_REVIEWING` → `FINANCE_APPROVED` (blocked if any item lacks `codeSecondaire`)
+
+Any finance admin can reject at any point during the finance stage. Same admin cannot sign off twice.
+
+**Code secondaire classification:** All line items (`ReimbursementItem`, `TravelAdvanceItem`, `TravelExpenseItem`) must be classified with a valid code (29 codes, defined in `backend/src/lib/code-secondaire.ts`) before the final finance signoff. Classifications are set via `PATCH /api/requests/:id/classify-item` by FINANCIAL_ADMIN users during `SUPERVISOR_APPROVED` or `FINANCE_REVIEWING` status.
 
 **Three user roles:**
 - `USER`: Create and manage own requests
 - `SUPERVISOR`: Review subordinates' requests, approve with billing account selection
-- `FINANCIAL_ADMIN`: Final approval, mark paid, manage users and accounts. Can also perform supervisor-stage approvals/rejections.
+- `FINANCIAL_ADMIN`: Multi-signoff approval, mark paid, classify items, manage users and accounts. Can also perform supervisor-stage approvals/rejections.
 
 ## Key Technical Details
 
 ### Backend Structure
 - **Entry point**: `backend/main.ts` - mounts Hono routes, initializes S3 bucket
-- **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts
-- **Services**: `backend/src/services/` - business logic layer (auth, request, approval, storage, account, user)
+- **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts, code-secondaire
+- **Services**: `backend/src/services/` - business logic layer (auth, request, approval, classification, storage, account, user)
 - **Middleware**: `backend/src/middleware/auth.ts` - JWT auth, CSRF protection (`X-Requested-With` header required), role gates
-- **Lib**: `backend/src/lib/` - Prisma client singleton, S3 client, JWT utilities, env validation
+- **Lib**: `backend/src/lib/` - Prisma client singleton, S3 client, JWT utilities, env validation, code-secondaire codes
 
 ### Frontend Structure
 - **File-based routing**: `frontend/src/routes/` using TanStack Router
@@ -110,6 +119,8 @@ All monetary fields are `Decimal(12,2)`.
 
 ### Seeded Test Users (dev mode only)
 - `admin@test.com` / `Test1234!` - FINANCIAL_ADMIN
+- `admin2@test.com` / `Test1234!` - FINANCIAL_ADMIN
+- `admin3@test.com` / `Test1234!` - FINANCIAL_ADMIN
 - `supervisor@test.com` / `Test1234!` - SUPERVISOR (reports to admin)
 - `user@test.com` / `Test1234!` - USER (reports to supervisor)
 
@@ -134,6 +145,7 @@ All monetary fields are `Decimal(12,2)`.
 
 ### Environment Variables
 - `NODE_ENV`: Controls secure cookie flag (`secure: true` when `production`). Validated via Zod in `backend/src/lib/env.ts`.
+- `REQUIRED_FINANCE_APPROVALS`: Number of distinct FINANCIAL_ADMIN signoffs required before finance approval (default 3).
 
 ### Security & Quality Measures
 

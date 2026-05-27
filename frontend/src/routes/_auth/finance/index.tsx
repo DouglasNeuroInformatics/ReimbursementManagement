@@ -8,7 +8,9 @@ export const Route = createFileRoute('/_auth/finance/')({ component: FinanceQueu
 
 function FinanceQueuePage() {
   const { data: allRequests = [], isLoading } = useRequests()
-  const requests = allRequests.filter((r) => r.status === 'SUPERVISOR_APPROVED' || r.status === 'FINANCE_APPROVED')
+  const requests = allRequests.filter((r) =>
+    r.status === 'SUPERVISOR_APPROVED' || r.status === 'FINANCE_REVIEWING' || r.status === 'FINANCE_APPROVED',
+  )
   if (isLoading) return <PageSpinner />
   return (
     <div className="space-y-4">

@@ -114,6 +114,8 @@ export async function createTestUser(
  */
 export async function createTestUsers(): Promise<{
   admin: TestUser;
+  admin2: TestUser;
+  admin3: TestUser;
   supervisor: TestUser;
   user: TestUser;
 }> {
@@ -121,7 +123,23 @@ export async function createTestUsers(): Promise<{
     "test-admin@example.com",
     "TestPass123!",
     "Admin",
-    "User",
+    "One",
+    "FINANCIAL_ADMIN",
+  );
+
+  const admin2 = await createTestUser(
+    "test-admin2@example.com",
+    "TestPass123!",
+    "Admin",
+    "Two",
+    "FINANCIAL_ADMIN",
+  );
+
+  const admin3 = await createTestUser(
+    "test-admin3@example.com",
+    "TestPass123!",
+    "Admin",
+    "Three",
     "FINANCIAL_ADMIN",
   );
 
@@ -143,7 +161,7 @@ export async function createTestUsers(): Promise<{
     supervisor.id,
   );
 
-  return { admin, supervisor, user };
+  return { admin, admin2, admin3, supervisor, user };
 }
 
 /**
@@ -155,14 +173,14 @@ export async function createTestRequest(
   status: RequestStatus = "DRAFT",
   title?: string,
   details?: {
-    reimbursement?: { items: Array<{ description: string; amount: number; date: Date; vendor?: string }> };
+    reimbursement?: { items: Array<{ description: string; amount: number; date: Date; vendor?: string; codeSecondaire?: string }> };
     travelAdvance?: {
       destination: string;
       purpose: string;
       departureDate: Date;
       returnDate: Date;
       estimatedAmount: number;
-      items?: Array<{ category: string; amount: number; notes?: string }>;
+      items?: Array<{ category: string; amount: number; notes?: string; codeSecondaire?: string }>;
     };
     travelReimbursement?: {
       destination: string;
@@ -171,7 +189,7 @@ export async function createTestRequest(
       returnDate: Date;
       totalAmount: number;
       advanceRequestId?: string;
-      items?: Array<{ date: Date; category: string; amount: number; vendor?: string }>;
+      items?: Array<{ date: Date; category: string; amount: number; vendor?: string; codeSecondaire?: string }>;
     };
   },
 ) {
@@ -194,6 +212,7 @@ export async function createTestRequest(
             amount: item.amount,
             date: item.date,
             vendor: item.vendor,
+            codeSecondaire: item.codeSecondaire ?? null,
           })),
         },
       },
@@ -212,6 +231,7 @@ export async function createTestRequest(
               category: item.category,
               amount: item.amount,
               notes: item.notes,
+              codeSecondaire: item.codeSecondaire ?? null,
             })),
           }
           : undefined,
@@ -233,6 +253,7 @@ export async function createTestRequest(
               category: item.category,
               amount: item.amount,
               vendor: item.vendor,
+              codeSecondaire: item.codeSecondaire ?? null,
             })),
           }
           : undefined,

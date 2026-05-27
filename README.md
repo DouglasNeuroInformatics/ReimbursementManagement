@@ -159,11 +159,13 @@ Deno automatically resolves npm dependencies via the `deno.json` import map. A `
 
 Development defaults are pre-configured -- no `.env` file is required (defaults like `devpassword` are used).
 
-The development environment automatically seeds three test users on first startup:
+The development environment automatically seeds five test users on first startup:
 
 | Email                  | Password    | Role               | Notes                       |
 |-----------------------|-------------|--------------------|-----------------------------|
 | `admin@test.com`      | `Test1234!` | `FINANCIAL_ADMIN`  | Finance Director            |
+| `admin2@test.com`     | `Test1234!` | `FINANCIAL_ADMIN`  | Finance Manager             |
+| `admin3@test.com`     | `Test1234!` | `FINANCIAL_ADMIN`  | Finance Officer             |
 | `supervisor@test.com` | `Test1234!` | `SUPERVISOR`       | Team Lead, reports to admin |
 | `user@test.com`       | `Test1234!` | `USER`             | Analyst, reports to supervisor |
 
@@ -186,6 +188,7 @@ Copy `.env.example` to `.env` and configure:
 | `CURRENCY`            | No       | `CAD`             | ISO 4217 currency code displayed in the UI                         |
 | `S3_PUBLIC_ENDPOINT`  | No       | `http://localhost:8080/s3` | Public URL for S3 presigned download URLs (adjust for production) |
 | `DEMO_MODE`           | No       | `false`           | Set to `true` to populate database with sample data for demonstration |
+| `REQUIRED_FINANCE_APPROVALS` | No | `3`          | Number of distinct FINANCIAL_ADMIN signoffs required before finance approval |
 
 ## Demo Mode
 
@@ -207,7 +210,7 @@ DEMO_MODE=true docker-compose up
 
 When demo mode is enabled, the database is seeded with:
 
-- **3 Users** with various roles (Financial Admin, Supervisor, Regular User)
+- **5 Users** with various roles (3 Financial Admins, Supervisor, Regular User)
 - **8 Sample Requests** at different workflow stages (draft, submitted, approved, rejected, paid)
 - **3 Billing Accounts** for demonstrations
 
@@ -216,6 +219,8 @@ When demo mode is enabled, the database is seeded with:
 All demo accounts use the same password: `Test1234!`
 
 - **Financial Admin**: `admin@test.com`
+- **Financial Admin**: `admin2@test.com`
+- **Financial Admin**: `admin3@test.com`
 - **Supervisor**: `supervisor@test.com`
 - **Regular User**: `user@test.com`
 
@@ -274,40 +279,47 @@ A post-trip reimbursement for actual expenses incurred. Contains:
 Every request follows this lifecycle:
 
 ```
-                          +-------+
-                   +----->| DRAFT |<-----------+
-                   |      +---+---+            |
-                   |          |                |
-                   |       submit            revise
-                   |          |                |
-                   |   +------v------+   +-----+--------+
-                   |   | SUBMITTED   |   | SUPERVISOR   |
-                   |   +------+------+   | REJECTED     |
-                   |          |          +--------------+
-                   |   supervisor            ^
-                   |   reviews               |
-                   |     |         +---------+
-                   |     |  reject |
-                   |  +--v-----------+
-                   |  | SUPERVISOR   |
-                   |  | APPROVED     |
-                   |  +--+-----------+
-                   |     |
-                   |  finance
-                   |  reviews
-                   |     |         +---------+
-                   |     |  reject |         |
-                   |  +--v-----------+  +----+-------+
-                   |  | FINANCE      |  | FINANCE    |
-                   |  | APPROVED     |  | REJECTED   |
-                   +--+ (mark paid)  |  +------------+
-                      +--+-----------+
-                         |
-                      mark paid
-                         |
-                      +--v---+
-                      | PAID |
-                      +------+
+                           +-------+
+                    +----->| DRAFT |<-----------+
+                    |      +---+---+            |
+                    |          |                |
+                    |       submit            revise
+                    |          |                |
+                    |   +------v------+   +-----+--------+
+                    |   | SUBMITTED   |   | SUPERVISOR   |
+                    |   +------+------+   | REJECTED     |
+                    |          |          +--------------+
+                    |   supervisor            ^
+                    |   reviews               |
+                    |     |         +---------+
+                    |     |  reject |
+                    |  +--v-----------+
+                    |  | SUPERVISOR   |
+                    |  | APPROVED     |
+                    |  +--+-----------+
+                    |     |
+                    |  finance
+                    |  signoff 1
+                    |     |
+                    |  +--v-----------+     +----------+
+                    |  | FINANCE      |---->| FINANCE  |
+                    |  | REVIEWING    |<----+ REJECTED |
+                    |  +--+-----------+  ^  +----------+
+                    |     |              |
+                    |  signoff N        reject
+                    |  (all items       (any admin)
+                    |   classified)
+                    |     |
+                    |  +--v-----------+
+                    |  | FINANCE      |
+                    |  | APPROVED     |
+                    |  +--+-----------+
+                    |     |
+                    |  mark paid
+                    |     |
+                    |  +--v---+
+                    +--+ PAID |
+                       +------+
 ```
 
 **Status descriptions:**
@@ -316,9 +328,10 @@ Every request follows this lifecycle:
 |------------------------|--------------------------------------------------------------------|
 | `DRAFT`                | Created but not yet submitted. Editable by the owner.              |
 | `SUBMITTED`            | Awaiting supervisor review.                                        |
-| `SUPERVISOR_APPROVED`  | Supervisor approved; awaiting finance review.                      |
+| `SUPERVISOR_APPROVED`  | Supervisor approved; awaiting first finance signoff.               |
 | `SUPERVISOR_REJECTED`  | Supervisor rejected. Owner can revise and resubmit.                |
-| `FINANCE_APPROVED`     | Finance approved; awaiting payment.                                |
+| `FINANCE_REVIEWING`    | Under finance review; accumulating required signoffs.              |
+| `FINANCE_APPROVED`     | All required finance signoffs complete; awaiting payment.          |
 | `FINANCE_REJECTED`     | Finance rejected. Owner can revise and resubmit.                   |
 | `PAID`                 | Payment completed. Terminal state.                                 |
 
@@ -589,7 +602,7 @@ Click **Review Queue** in the sidebar to see all requests awaiting your review.
 Click **Request History** in the sidebar to view all past requests that have moved beyond supervisor review.
 
 - **Heading**: "Request History" with a count of completed or processed requests.
-- **Table**: lists all requests with status **Supervisor Approved**, **Finance Approved**, **Finance Rejected**, or **Paid**, showing:
+- **Table**: lists all requests with status **Supervisor Approved**, **Finance Reviewing**, **Finance Approved**, **Finance Rejected**, or **Paid**, showing:
   - **User** -- the requester's name.
   - **Title** -- clickable link to the review detail page (read-only, no approval form shown for completed requests).
   - **Type** -- request type.
@@ -649,11 +662,11 @@ Financial administrators have the highest level of access. They see everything s
 Click **Finance Queue** in the sidebar to see requests awaiting finance action.
 
 - **Heading**: "Finance Queue" with a count (e.g., "5 request(s) pending finance action.").
-- **Table**: lists all requests with status **Supervisor Approved** or **Finance Approved**, showing:
+- **Table**: lists all requests with status **Supervisor Approved**, **Finance Reviewing**, or **Finance Approved**, showing:
   - **User** -- the requester's name.
   - **Title** -- clickable link to the finance detail page.
   - **Type** -- request type.
-  - **Status** -- either Supervisor Approved (needs your review) or Finance Approved (ready to be marked as paid).
+  - **Status** -- Supervisor Approved (needs first signoff), Finance Reviewing (under multi-admin review), or Finance Approved (ready to be marked as paid).
   - **Account** -- the billing account selected by the supervisor during approval.
   - **Submitted** -- original submission date.
 - Click any column header to sort.
@@ -664,12 +677,15 @@ Click a request in the Finance Queue to open the finance detail page. This page 
 
 - The same request details and documents as the review page.
 - **Charged to account**: the billing account number and label selected by the supervisor.
+- **Signoff progress**: shows how many distinct finance admin signoffs have been completed out of the required total (e.g., "1 / 3 signoffs completed"). If you have already signed off, a message indicates this.
+- **Code secondaire classification**: each line item shows its classification status. Items without a classification display a dropdown to select a code. All items must be classified before the final signoff.
 - **Finance Action** panel that changes based on the request's current status:
 
-**When status is Supervisor Approved:**
+**When status is Supervisor Approved or Finance Reviewing:**
 
 1. Optionally type a **Comment**.
-2. Click **Approve** to advance the request to Finance Approved, or **Reject** to send it back to the requester as Finance Rejected.
+2. Click **Approve** to add your signoff. On the first signoff, the request moves from Supervisor Approved to Finance Reviewing. Subsequent signoffs keep it in Finance Reviewing. The final signoff (when all items are classified) moves it to Finance Approved.
+3. Click **Reject** to send it back to the requester as Finance Rejected. Any finance admin can reject at any point during the review.
 
 **When status is Finance Approved:**
 
@@ -774,9 +790,11 @@ Authentication endpoints are rate-limited to 15 requests per minute per IP addre
 |--------|---------------------------------------|------|-----------------|------------------------------------------|
 | POST   | `/api/requests/:id/supervisor-approve` | Yes  | SUPERVISOR, FINANCIAL_ADMIN | Approve (requires `accountId` in body)  |
 | POST   | `/api/requests/:id/supervisor-reject`  | Yes  | SUPERVISOR, FINANCIAL_ADMIN | Reject (optional `comment`)             |
-| POST   | `/api/requests/:id/finance-approve`    | Yes  | FINANCIAL_ADMIN | Approve for payment                     |
+| POST   | `/api/requests/:id/finance-approve`    | Yes  | FINANCIAL_ADMIN | Add finance signoff (multi-admin required) |
 | POST   | `/api/requests/:id/finance-reject`     | Yes  | FINANCIAL_ADMIN | Reject (optional `comment`)             |
 | POST   | `/api/requests/:id/mark-paid`          | Yes  | FINANCIAL_ADMIN | Mark as paid (terminal state)           |
+| PATCH  | `/api/requests/:id/classify-item`      | Yes  | FINANCIAL_ADMIN | Classify item with code secondaire      |
+| GET    | `/api/code-secondaire`                 | Yes  | FINANCIAL_ADMIN | List valid code secondaire codes        |
 
 ### Documents API
 
@@ -838,7 +856,7 @@ Approval
 
 - **Role:** `USER`, `SUPERVISOR`, `FINANCIAL_ADMIN`
 - **RequestType:** `REIMBURSEMENT`, `TRAVEL_ADVANCE`, `TRAVEL_REIMBURSEMENT`
-- **RequestStatus:** `DRAFT`, `SUBMITTED`, `SUPERVISOR_APPROVED`, `SUPERVISOR_REJECTED`, `FINANCE_APPROVED`, `FINANCE_REJECTED`, `PAID`
+- **RequestStatus:** `DRAFT`, `SUBMITTED`, `SUPERVISOR_APPROVED`, `SUPERVISOR_REJECTED`, `FINANCE_REVIEWING`, `FINANCE_APPROVED`, `FINANCE_REJECTED`, `PAID`
 - **ApprovalAction:** `APPROVE`, `REJECT`, `REQUEST_CHANGES`, `PAID`
 - **ApprovalStage:** `SUPERVISOR`, `FINANCE`
 
@@ -907,14 +925,16 @@ ReimbursementManagement/
 |       |-- routes/
 |       |   |-- auth.ts           # Registration, login, logout, refresh, profile
 |       |   |-- requests.ts       # Request CRUD, submit, revise
-|       |   |-- approvals.ts      # Supervisor/finance approve, reject, mark-paid
+|       |   |-- approvals.ts      # Supervisor/finance approve, reject, mark-paid, classify-item
 |       |   |-- documents.ts      # File upload, download URL, delete
 |       |   |-- users.ts          # User listing and role management
 |       |   |-- accounts.ts       # Supervisor billing account CRUD
+|       |   |-- code-secondaire.ts # Code secondaire list endpoint
 |       |-- services/
 |       |   |-- auth.service.ts   # Auth logic (argon2 hash, JWT, sessions)
 |       |   |-- request.service.ts # Request lifecycle and data access
-|       |   |-- approval.service.ts # Approval workflow state machine
+|       |   |-- approval.service.ts # Multi-signoff approval workflow state machine
+|       |   |-- classification.service.ts # Code secondaire classification logic
 |       |   |-- storage.service.ts # S3 upload, download, delete
 |       |   |-- account.service.ts # Supervisor account management
 |       |   |-- user.service.ts   # User listing and role/supervisor updates
@@ -926,6 +946,7 @@ ReimbursementManagement/
 |           |-- s3.ts             # S3 client configuration
 |           |-- jwt.ts            # JWT sign/verify utilities
 |           |-- env.ts            # Environment config with Zod validation
+|           |-- code-secondaire.ts # Static code list (29 codes)
 |
 |-- frontend/
     |-- Dockerfile                # Multi-stage build (deno build + Caddy)

@@ -14,7 +14,8 @@ export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/')({ 
 function RequestDetailPage() {
   const { requestId } = Route.useParams()
   const { user } = useAuth()
-  const { data: request, isLoading } = useRequest(requestId)
+  const { data, isLoading } = useRequest(requestId)
+  const request = data?.request
   const submitReq = useSubmitRequest()
   const reviseReq = useReviseRequest()
   const deleteReq = useDeleteRequest()

@@ -67,17 +67,49 @@ interface FinanceFormProps {
   approveLoading?: boolean
   rejectLoading?: boolean
   paidLoading?: boolean
+  approveDisabled?: boolean
+  alreadySigned?: boolean
+  approvalProgress?: { current: number; required: number }
+  allClassified?: boolean
 }
 
-export function FinanceApprovalForm({ onApprove, onReject, onMarkPaid, showMarkPaid, approveLoading, rejectLoading, paidLoading }: FinanceFormProps) {
+export function FinanceApprovalForm({
+  onApprove,
+  onReject,
+  onMarkPaid,
+  showMarkPaid,
+  approveLoading,
+  rejectLoading,
+  paidLoading,
+  approveDisabled,
+  alreadySigned,
+  approvalProgress,
+  allClassified,
+}: FinanceFormProps) {
   const [comment, setComment] = useState('')
   return (
     <div className="space-y-4">
+      {approvalProgress && (
+        <p className="text-sm text-gray-600">
+          Finance approvals: {approvalProgress.current} of {approvalProgress.required} received
+        </p>
+      )}
+      {alreadySigned && (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          You have already signed off on this request.
+        </p>
+      )}
       <Textarea label="Comment (optional)" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a note..." />
       <div className="flex gap-3">
         {!showMarkPaid && (
           <>
-            <Button onClick={() => onApprove({ comment: comment || undefined })} loading={approveLoading}>Approve</Button>
+            <Button
+              onClick={() => onApprove({ comment: comment || undefined })}
+              loading={approveLoading}
+              disabled={approveDisabled}
+            >
+              Approve
+            </Button>
             <Button variant="danger" onClick={() => onReject({ comment: comment || undefined })} loading={rejectLoading}>Reject</Button>
           </>
         )}
@@ -85,6 +117,9 @@ export function FinanceApprovalForm({ onApprove, onReject, onMarkPaid, showMarkP
           <Button onClick={() => onMarkPaid({ comment: comment || undefined })} loading={paidLoading} variant="primary">Mark as Paid</Button>
         )}
       </div>
+      {!showMarkPaid && !allClassified && approvalProgress && approvalProgress.current + 1 >= approvalProgress.required && (
+        <p className="text-xs text-amber-700">All items must have a code secondaire before the final approval can be given.</p>
+      )}
     </div>
   )
 }
