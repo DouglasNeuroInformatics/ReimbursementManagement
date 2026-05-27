@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.ts";
 import { AppError } from "../middleware/error.ts";
 import { getEnv } from "../lib/env.ts";
 import { allItemsClassified } from "./classification.service.ts";
+import type { RequestStatus } from "../generated/prisma/client.ts";
 
 const approvalInclude = {
   approvals: {
@@ -16,6 +17,20 @@ function getRequiredApprovals(): number {
   return getEnv().REQUIRED_FINANCE_APPROVALS;
 }
 
+type Verb = "approve" | "reject";
+
+function assertSupervisorStageActionable(status: RequestStatus, verb: Verb): void {
+  if (status !== "SUBMITTED") {
+    throw new AppError(400, `Cannot ${verb} request with status: ${status}`);
+  }
+}
+
+function assertFinanceStageActionable(status: RequestStatus, verb: Verb): void {
+  if (status !== "SUPERVISOR_APPROVED" && status !== "FINANCE_REVIEWING") {
+    throw new AppError(400, `Cannot ${verb} request with status: ${status}`);
+  }
+}
+
 export async function supervisorApprove(
   requestId: string,
   supervisorId: string,
@@ -28,9 +43,7 @@ export async function supervisorApprove(
     include: { user: { select: { supervisorId: true } } },
   });
   if (!request) throw new AppError(404, "Request not found");
-  if (request.status !== "SUBMITTED") {
-    throw new AppError(400, `Cannot approve request with status: ${request.status}`);
-  }
+  assertSupervisorStageActionable(request.status, "approve");
   if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
     throw new AppError(403, "This request is assigned to a different supervisor");
   }
@@ -78,9 +91,7 @@ export async function supervisorReject(
     include: { user: { select: { supervisorId: true } } },
   });
   if (!request) throw new AppError(404, "Request not found");
-  if (request.status !== "SUBMITTED") {
-    throw new AppError(400, `Cannot reject request with status: ${request.status}`);
-  }
+  assertSupervisorStageActionable(request.status, "reject");
   if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
     throw new AppError(403, "This request is assigned to a different supervisor");
   }
@@ -122,10 +133,7 @@ export async function financeApprove(
       SELECT id, status FROM "Request" WHERE id = ${requestId} FOR UPDATE
     `;
     if (locked.length === 0) throw new AppError(404, "Request not found");
-    const currentStatus = locked[0].status;
-    if (currentStatus !== "SUPERVISOR_APPROVED" && currentStatus !== "FINANCE_REVIEWING") {
-      throw new AppError(400, `Cannot approve request with status: ${currentStatus}`);
-    }
+    assertFinanceStageActionable(locked[0].status as RequestStatus, "approve");
 
     const existing = await tx.approval.findMany({
       where: { requestId, stage: "FINANCE", action: "APPROVE" },
@@ -174,13 +182,7 @@ export async function financeReject(
 ) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request) throw new AppError(404, "Request not found");
-
-  if (
-    request.status !== "SUPERVISOR_APPROVED" &&
-    request.status !== "FINANCE_REVIEWING"
-  ) {
-    throw new AppError(400, `Cannot reject request with status: ${request.status}`);
-  }
+  assertFinanceStageActionable(request.status, "reject");
 
   return prisma.$transaction(async (tx) => {
     await tx.request.update({
