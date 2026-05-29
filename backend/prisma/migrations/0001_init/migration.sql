@@ -8,7 +8,7 @@ CREATE TYPE "Role" AS ENUM ('USER', 'SUPERVISOR', 'FINANCIAL_ADMIN');
 CREATE TYPE "RequestType" AS ENUM ('REIMBURSEMENT', 'TRAVEL_ADVANCE', 'TRAVEL_REIMBURSEMENT');
 
 -- CreateEnum
-CREATE TYPE "RequestStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'SUPERVISOR_APPROVED', 'SUPERVISOR_REJECTED', 'FINANCE_APPROVED', 'FINANCE_REJECTED', 'PAID');
+CREATE TYPE "RequestStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'SUPERVISOR_APPROVED', 'SUPERVISOR_REJECTED', 'FINANCE_REVIEWING', 'FINANCE_APPROVED', 'FINANCE_REJECTED', 'PAID');
 
 -- CreateEnum
 CREATE TYPE "ApprovalAction" AS ENUM ('APPROVE', 'REJECT', 'REQUEST_CHANGES', 'PAID');
@@ -91,6 +91,8 @@ CREATE TABLE "ReimbursementItem" (
     "date" TIMESTAMP(3) NOT NULL,
     "vendor" TEXT,
     "notes" TEXT,
+    "codeSecondaire" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "ReimbursementItem_pkey" PRIMARY KEY ("id")
 );
@@ -115,6 +117,8 @@ CREATE TABLE "TravelAdvanceItem" (
     "category" TEXT NOT NULL,
     "amount" DECIMAL(12,2) NOT NULL,
     "notes" TEXT,
+    "codeSecondaire" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "TravelAdvanceItem_pkey" PRIMARY KEY ("id")
 );
@@ -142,6 +146,8 @@ CREATE TABLE "TravelExpenseItem" (
     "amount" DECIMAL(12,2) NOT NULL,
     "vendor" TEXT,
     "notes" TEXT,
+    "codeSecondaire" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "TravelExpenseItem_pkey" PRIMARY KEY ("id")
 );
@@ -192,6 +198,30 @@ CREATE UNIQUE INDEX "TravelAdvanceDetail_requestId_key" ON "TravelAdvanceDetail"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "TravelReimbursementDetail_requestId_key" ON "TravelReimbursementDetail"("requestId");
+
+-- CreateIndex
+CREATE INDEX "Request_userId_idx" ON "Request"("userId");
+
+-- CreateIndex
+CREATE INDEX "Request_status_idx" ON "Request"("status");
+
+-- CreateIndex
+CREATE INDEX "Request_userId_status_idx" ON "Request"("userId", "status");
+
+-- CreateIndex
+CREATE INDEX "Document_requestId_idx" ON "Document"("requestId");
+
+-- CreateIndex
+CREATE INDEX "Approval_requestId_idx" ON "Approval"("requestId");
+
+-- CreateIndex
+CREATE INDEX "Approval_actorId_idx" ON "Approval"("actorId");
+
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_supervisorId_fkey" FOREIGN KEY ("supervisorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

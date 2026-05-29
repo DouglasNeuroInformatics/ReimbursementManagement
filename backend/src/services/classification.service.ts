@@ -12,7 +12,7 @@ type ItemType = "reimbursement" | "travel_advance" | "travel_expense";
 type ItemHandler = {
   label: string;
   findRequestId: (id: string) => Promise<{ detail: { requestId: string } } | null>;
-  setCode: (id: string, codeSecondaire: string) => Promise<unknown>;
+  setCode: (id: string, codeSecondaire: string | null) => Promise<unknown>;
 };
 
 const ITEM_HANDLERS: Record<ItemType, ItemHandler> = {
@@ -69,9 +69,10 @@ export async function classifyItem(
   if (!item || item.detail.requestId !== requestId) {
     throw new AppError(404, `${handler.label} not found in this request`);
   }
-  await handler.setCode(itemId, codeSecondaire);
+  const code = codeSecondaire || null;
+  await handler.setCode(itemId, code);
 
-  return { success: true, itemId, codeSecondaire };
+  return { success: true, itemId, codeSecondaire: code };
 }
 
 export async function allItemsClassified(

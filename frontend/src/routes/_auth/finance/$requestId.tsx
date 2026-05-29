@@ -48,7 +48,7 @@ function FinanceDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-5xl space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
         <div className="flex items-center gap-3 mt-1">

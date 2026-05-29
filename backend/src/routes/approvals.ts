@@ -23,7 +23,7 @@ const commentSchema = z.object({
 const classifyItemSchema = z.object({
   itemId: z.string().uuid(),
   itemType: z.enum(["reimbursement", "travel_advance", "travel_expense"]),
-  codeSecondaire: codeSecondaireSchema,
+  codeSecondaire: z.union([codeSecondaireSchema, z.literal('')]),
 });
 
 router.post(

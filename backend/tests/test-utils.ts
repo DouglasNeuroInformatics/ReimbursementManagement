@@ -207,12 +207,13 @@ export async function createTestRequest(
     createData.reimbursement = {
       create: {
         items: {
-          create: details.reimbursement.items.map((item) => ({
+          create: details.reimbursement.items.map((item, i) => ({
             description: item.description,
             amount: item.amount,
             date: item.date,
             vendor: item.vendor,
             codeSecondaire: item.codeSecondaire ?? null,
+            sortOrder: i,
           })),
         },
       },
@@ -227,11 +228,12 @@ export async function createTestRequest(
         estimatedAmount: details.travelAdvance.estimatedAmount,
         items: details.travelAdvance.items
           ? {
-            create: details.travelAdvance.items.map((item) => ({
+            create: details.travelAdvance.items.map((item, i) => ({
               category: item.category,
               amount: item.amount,
               notes: item.notes,
               codeSecondaire: item.codeSecondaire ?? null,
+              sortOrder: i,
             })),
           }
           : undefined,
@@ -248,12 +250,13 @@ export async function createTestRequest(
         advanceRequestId: details.travelReimbursement.advanceRequestId,
         items: details.travelReimbursement.items
           ? {
-            create: details.travelReimbursement.items.map((item) => ({
+            create: details.travelReimbursement.items.map((item, i) => ({
               date: item.date,
               category: item.category,
               amount: item.amount,
               vendor: item.vendor,
               codeSecondaire: item.codeSecondaire ?? null,
+              sortOrder: i,
             })),
           }
           : undefined,

@@ -1350,3 +1350,166 @@ Deno.test({ name: "Requests: PATCH /api/requests/:id - accepts advanceRequestId 
   const detail = await prisma.travelReimbursementDetail.findUnique({ where: { requestId: request.id } });
   assertEquals(detail?.advanceRequestId, paidAdvance.id);
 });
+
+Deno.test({ name: "Requests: GET /api/requests/:id - FINANCIAL_ADMIN can view any user's request", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { admin, user } = await createTestUsers();
+  await createTestRequest(user.id, "REIMBURSEMENT", "SUBMITTED", "Admin Review Test", {
+    reimbursement: {
+      items: [
+        { description: "Widget", amount: 50.0, date: new Date("2026-03-01") },
+      ],
+    },
+  });
+
+  const request = await prisma.request.findFirst({ where: { title: "Admin Review Test" } });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: admin.email, password: admin.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  assertExists(response.body.request);
+  assertEquals(response.body.request.id, request.id);
+});
+
+Deno.test({ name: "Requests: GET /api/requests/:id - returns REIMBURSEMENT with items including codeSecondaire", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT", "Code Sec Test", {
+    reimbursement: {
+      items: [
+        { description: "Software license", amount: 100.0, date: new Date("2026-01-15"), codeSecondaire: "65030" },
+        { description: "Office supplies", amount: 25.0, date: new Date("2026-01-16"), codeSecondaire: "64040" },
+      ],
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  const items = response.body.request.reimbursement.items;
+  assertEquals(items.length, 2);
+  assertEquals(items[0].codeSecondaire, "65030");
+  assertEquals(items[1].codeSecondaire, "64040");
+});
+
+Deno.test({ name: "Requests: GET /api/requests/:id - returns TRAVEL_ADVANCE with items", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_ADVANCE", "DRAFT", "Travel Advance Detail", {
+    travelAdvance: {
+      destination: "Vancouver",
+      purpose: "Conference",
+      departureDate: new Date("2026-04-01"),
+      returnDate: new Date("2026-04-03"),
+      estimatedAmount: 2000.0,
+      items: [
+        { category: "Airfare", amount: 800.0, codeSecondaire: "66340" },
+        { category: "Hotel", amount: 600.0 },
+      ],
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  const ta = response.body.request.travelAdvance;
+  assertExists(ta);
+  assertEquals(ta.destination, "Vancouver");
+  assertEquals(ta.items.length, 2);
+  assertEquals(ta.items[0].codeSecondaire, "66340");
+  assertEquals(ta.items[1].codeSecondaire, null);
+});
+
+Deno.test({ name: "Requests: GET /api/requests/:id - returns TRAVEL_REIMBURSEMENT with items including codeSecondaire", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "TRAVEL_REIMBURSEMENT", "DRAFT", "Travel Reimb Detail", {
+    travelReimbursement: {
+      destination: "Montreal",
+      purpose: "Client visit",
+      departureDate: new Date("2026-05-01"),
+      returnDate: new Date("2026-05-02"),
+      totalAmount: 750.0,
+      items: [
+        { date: new Date("2026-05-01"), category: "Airfare", amount: 400.0, vendor: "Air Canada", codeSecondaire: "66340" },
+        { date: new Date("2026-05-01"), category: "Hotel", amount: 350.0, vendor: "Hilton" },
+      ],
+    },
+  });
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  const tr = response.body.request.travelReimbursement;
+  assertExists(tr);
+  assertEquals(tr.destination, "Montreal");
+  assertEquals(tr.items.length, 2);
+  assertEquals(tr.items[0].codeSecondaire, "66340");
+  assertEquals(tr.items[1].codeSecondaire, null);
+});
+
+Deno.test({ name: "Requests: GET /api/requests/:id - returns requiredFinanceApprovals", sanitizeResources: false, sanitizeOps: false }, async () => {
+  await cleanupDatabase();
+  const { user } = await createTestUsers();
+  const request = await createTestRequest(user.id, "REIMBURSEMENT", "DRAFT");
+
+  const loginResponse = await makeRequest(API_BASE, {
+    method: "POST",
+    path: "/auth/login",
+    body: { email: user.email, password: user.password },
+  });
+  const cookies = parseSetCookie(loginResponse.headers.get("set-cookie"));
+
+  const response = await makeRequest(API_BASE, {
+    method: "GET",
+    path: `/requests/${request.id}`,
+    cookieHeader: cookies.cookieHeader,
+  });
+
+  assertEquals(response.status, 200);
+  assertEquals(response.body.requiredFinanceApprovals, 3);
+});

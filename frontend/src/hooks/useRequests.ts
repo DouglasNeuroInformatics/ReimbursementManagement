@@ -106,9 +106,10 @@ export const useFinanceReject = (requestId: string) =>
 export const useMarkPaid = (requestId: string) =>
   useRequestAction<{ comment?: string }>(requestId, 'mark-paid')
 
-export function useClassifyItem(requestId: string) {
+export function useClassifyItem(requestId: string, itemId: string) {
   const qc = useQueryClient()
   return useMutation({
+    mutationKey: ['classify-item', requestId, itemId],
     mutationFn: (data: { itemId: string; itemType: 'reimbursement' | 'travel_advance' | 'travel_expense'; codeSecondaire: string }) =>
       api.patch(`/api/requests/${requestId}/classify-item`, data),
     onSuccess: () => {

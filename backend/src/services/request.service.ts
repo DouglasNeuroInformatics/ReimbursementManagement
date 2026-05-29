@@ -67,9 +67,9 @@ type UpdateRequestData = {
 
 const requestInclude = {
   user: { select: { id: true, firstName: true, lastName: true, email: true, supervisorId: true } },
-  reimbursement: { include: { items: { include: { documents: true }, orderBy: { date: 'asc' as const } } } },
-  travelAdvance: { include: { items: true } },
-  travelReimbursement: { include: { items: true } },
+  reimbursement: { include: { items: { include: { documents: true }, orderBy: [{ sortOrder: 'asc' as const }, { id: 'asc' as const }] } } },
+  travelAdvance: { include: { items: { orderBy: [{ sortOrder: 'asc' as const }, { id: 'asc' as const }] } } },
+  travelReimbursement: { include: { items: { orderBy: [{ sortOrder: 'asc' as const }, { id: 'asc' as const }] } } },
   documents: true,
   approvals: {
     include: {
@@ -210,7 +210,8 @@ export async function updateRequest(
         // Recreate items individually so we know which ID corresponds to
         // each input position (createMany would lose that mapping).
         const newItemIds: string[] = [];
-        for (const item of data.reimbursement.items) {
+        for (let i = 0; i < data.reimbursement.items.length; i++) {
+          const item = data.reimbursement.items[i];
           const created = await tx.reimbursementItem.create({
             data: {
               detailId: detail.id,
@@ -219,6 +220,7 @@ export async function updateRequest(
               date: new Date(item.date),
               vendor: item.vendor ?? null,
               notes: item.notes ?? null,
+              sortOrder: i,
             },
             select: { id: true },
           });
@@ -269,11 +271,12 @@ export async function updateRequest(
         await tx.travelAdvanceItem.deleteMany({ where: { detailId: detail.id } });
         if (ta.items.length > 0) {
           await tx.travelAdvanceItem.createMany({
-            data: ta.items.map((item) => ({
+            data: ta.items.map((item, i) => ({
               detailId: detail.id,
               category: item.category,
               amount: item.amount,
               notes: item.notes ?? null,
+              sortOrder: i,
             })),
           });
         }
@@ -316,13 +319,14 @@ export async function updateRequest(
         await tx.travelExpenseItem.deleteMany({ where: { detailId: detail.id } });
         if (tr.items.length > 0) {
           await tx.travelExpenseItem.createMany({
-            data: tr.items.map((item) => ({
+            data: tr.items.map((item, i) => ({
               detailId: detail.id,
               date: new Date(item.date),
               category: item.category,
               amount: item.amount,
               vendor: item.vendor ?? null,
               notes: item.notes ?? null,
+              sortOrder: i,
             })),
           });
         }
