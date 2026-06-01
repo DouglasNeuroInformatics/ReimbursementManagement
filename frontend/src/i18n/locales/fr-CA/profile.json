@@ -1,0 +1,20 @@
+{
+  "title": "Profil",
+  "account": "Compte",
+  "name": "Nom",
+  "email": "Courriel",
+  "role": "Rôle",
+  "memberSince": "Membre depuis",
+  "contactSection": "Coordonnées et poste",
+  "fields": {
+    "jobPosition": "Poste",
+    "jobPositionPlaceholder": "ex. Analyste principal",
+    "phone": "Téléphone",
+    "phonePlaceholder": "ex. +1 613 555 0100",
+    "extension": "Poste interne",
+    "extensionPlaceholder": "ex. 4201",
+    "address": "Adresse",
+    "addressPlaceholder": "123 rue Principale\nOttawa ON  K1A 0A9"
+  },
+  "language": "Langue"
+}

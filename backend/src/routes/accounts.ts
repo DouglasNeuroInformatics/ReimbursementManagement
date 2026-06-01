@@ -27,7 +27,7 @@ router.get("/:supervisorId/accounts/mine", requireRole("SUPERVISOR"), async (c) 
   const { id: userId } = c.get("user");
   const supervisorId = c.req.param("supervisorId");
   if (supervisorId !== userId) {
-    throw new AppError(403, "Can only view your own accounts");
+    throw new AppError(403, "ACCOUNT_OWN_ONLY");
   }
   const accounts = await accountService.getActiveAccounts(supervisorId);
   return c.json({ accounts });

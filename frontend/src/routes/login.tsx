@@ -1,15 +1,19 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { api, ApiError } from '../lib/api'
+import { useTranslation } from 'react-i18next'
+import { api } from '../lib/api'
+import { translateApiError } from '../lib/translateApiError'
 import type { User } from '../types'
 import { useState } from 'react'
+import { LocaleSwitcher } from '../components/layout/LocaleSwitcher'
 
 export const Route = createFileRoute('/login')({ component: LoginPage })
 
 function LoginPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { t } = useTranslation(['auth', 'common'])
   const [serverError, setServerError] = useState('')
 
   const form = useForm({
@@ -21,16 +25,19 @@ function LoginPage() {
         qc.setQueryData(['auth', 'me'], res.user)
         navigate({ to: '/dashboard' })
       } catch (err) {
-        setServerError(err instanceof ApiError ? err.message : 'Login failed')
+        setServerError(translateApiError(err) || t('signIn.errorGeneric'))
       }
     },
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 relative">
+      <div className="absolute top-4 right-4">
+        <LocaleSwitcher />
+      </div>
       <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign in</h1>
-        <p className="text-gray-500 text-sm mb-6">Reimbursement Management System</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('signIn.title')}</h1>
+        <p className="text-gray-500 text-sm mb-6">{t('appName', { ns: 'common' })}</p>
 
         {serverError && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -45,7 +52,7 @@ function LoginPage() {
           <form.Field name="email">
             {(field) => (
               <div>
-                <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">{t('fields.email')}</label>
                 <input
                   id="login-email"
                   type="email"
@@ -63,7 +70,7 @@ function LoginPage() {
           <form.Field name="password">
             {(field) => (
               <div>
-                <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">{t('fields.password')}</label>
                 <input
                   id="login-password"
                   type="password"
@@ -84,15 +91,15 @@ function LoginPage() {
                 disabled={isSubmitting}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                {isSubmitting ? 'Signing in...' : 'Sign in'}
+                {isSubmitting ? t('signIn.submitting') : t('signIn.submit')}
               </button>
             )}
           </form.Subscribe>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          No account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline font-medium">Register</Link>
+          {t('signIn.noAccount')}{' '}
+          <Link to="/register" className="text-blue-600 hover:underline font-medium">{t('signIn.registerLink')}</Link>
         </p>
       </div>
     </div>

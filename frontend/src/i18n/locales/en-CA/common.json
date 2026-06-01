@@ -1,0 +1,15 @@
+{
+  "appName": "Reimbursement Management System",
+  "appTitleShort": "Reimbursements",
+  "signOut": "Sign out",
+  "nav": {
+    "dashboard": "Dashboard",
+    "myRequests": "My Requests",
+    "management": "Management",
+    "reviewQueue": "Review Queue",
+    "requestHistory": "Request History",
+    "administration": "Administration",
+    "financeQueue": "Finance Queue",
+    "admin": "Admin"
+  }
+}

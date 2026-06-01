@@ -12,6 +12,9 @@ A full-stack expense reimbursement and travel request management system with a m
   - [Production](#production)
   - [Development](#development)
 - [Environment Variables](#environment-variables)
+- [Internationalization (i18n)](#internationalization-i18n)
+  - [Switching language](#switching-language)
+  - [Adding a new language](#adding-a-new-language)
 - [User Roles](#user-roles)
 - [Request Types](#request-types)
 - [Approval Workflow](#approval-workflow)
@@ -231,6 +234,99 @@ All demo accounts use the same password: `Test1234!`
 - Demo credentials are publicly known
 - Seed data is not meant for real financial transactions
 - Always keep `DEMO_MODE=false` (default) in production
+
+---
+
+## Internationalization (i18n)
+
+The application ships fully bilingual in **Canadian English (`en-CA`)** and **Canadian French (`fr-CA`)**. The default locale on a fresh visit is `fr-CA`; the language is auto-detected from the browser when possible and falls back to French otherwise.
+
+Currency, dates, and validation messages all follow the active locale:
+
+- `en-CA`: `CA$1,234.56`, `Mar 5, 2026`
+- `fr-CA`: `1 234,56 $`, `5 mars 2026`
+
+### Switching language
+
+A **FR / EN** toggle appears in the top-right of every page (including the login and registration pages).
+
+- **Anonymous users** (login / register): the choice persists in browser `localStorage` under the key `app.locale`. It survives a page reload but does not follow the user across devices.
+- **Authenticated users**: the choice is additionally persisted to your user profile (`User.preferredLocale`). On every login, the server's stored preference overrides any local browser setting — so your language follows you across browsers and devices.
+
+### Adding a new language
+
+The platform is designed so that adding a third locale (e.g. Mexican Spanish `es-MX`, or European French `fr-FR`) is **a constant change plus a folder of JSON files** — no Prisma migration, no schema change, no per-route code edits.
+
+**Steps:**
+
+1. **Append the locale to the allowlist** (BCP 47 tag) in **both** files:
+
+   ```ts
+   // backend/src/lib/locales.ts
+   // frontend/src/lib/locales.ts
+   export const SUPPORTED_LOCALES = ['en-CA', 'fr-CA', 'es-MX'] as const
+   ```
+
+2. **Add a row to the backend's fallback message table** in `backend/src/lib/i18n.ts`. Provide one translation per error code (copy the `EN` map as a template). These are only used when the frontend cannot reach the user (rare), but they keep error responses self-describing.
+
+3. **Create the locale's JSON resource files** under `frontend/src/i18n/locales/es-MX/`. Copy `fr-CA/` as a starting point and translate. The required files are:
+
+   ```
+   frontend/src/i18n/locales/es-MX/
+   ├── common.json        # nav, app title, sign-out
+   ├── auth.json          # login / register pages
+   ├── enums.json         # status, role, request-type, stage labels
+   ├── errors.json        # one entry per backend error code + validation codes
+   ├── policies.json      # 15 expense policies (title / description / requirements / documentation / notes)
+   ├── requests.json      # all request-flow pages
+   ├── profile.json       # profile page
+   ├── admin.json         # user-management page
+   ├── review.json        # supervisor review pages
+   ├── finance.json       # finance pages, code-secondaire UI
+   └── forms.json         # shared form labels (Save, Cancel, Add Row, file upload, …)
+   ```
+
+   Important: in `policies.json`, the `requirements` and `documentation` arrays for each policy id MUST have the **same length** as the `en-CA` version. The test suite enforces this.
+
+4. **Register the namespaces in i18next** by editing `frontend/src/i18n/index.ts`:
+
+   ```ts
+   import esCommon from './locales/es-MX/common.json'
+   import esAuth from './locales/es-MX/auth.json'
+   // … one import per namespace …
+
+   const resources = {
+     'en-CA': { common: enCommon, /* … */ },
+     'fr-CA': { common: frCommon, /* … */ },
+     'es-MX': { common: esCommon, auth: esAuth, /* … */ },
+   } as const
+   ```
+
+5. **Add a switcher label** in `frontend/src/components/layout/LocaleSwitcher.tsx`:
+
+   ```ts
+   const LABELS: Record<Locale, string> = {
+     'en-CA': 'EN',
+     'fr-CA': 'FR',
+     'es-MX': 'ES',
+   }
+   ```
+
+   TypeScript will refuse to compile until you add the new entry — a useful guardrail against incomplete locale additions.
+
+**Verify:**
+
+```bash
+cd frontend
+deno task test    # locale-parity tests run automatically
+deno task build   # confirms the bundle includes the new resources
+```
+
+The `LocaleSwitcher` UI auto-extends to render one button per `SUPPORTED_LOCALES` entry. Currency and date formatting accept the new BCP 47 tag without code changes (handled by `Intl.NumberFormat` / `Intl.DateTimeFormat`). Backend error messages will be rendered in the new locale because `Accept-Language` carries it on every request.
+
+**Notes on regional variants:** the language detector includes a normalization step that maps unsupported regional variants to the closest supported tag (`fr-FR` → `fr-CA`, `en-US` → `en-CA`, etc.). If you want a different downgrade behavior, edit `convertDetectedLanguage` in `frontend/src/i18n/index.ts`.
+
+**Removing a language:** delete its row from `SUPPORTED_LOCALES` (both files), remove its row from `LABELS`, delete its `locales/<tag>/` folder, and remove its imports from `frontend/src/i18n/index.ts`. Existing users with `preferredLocale` set to the removed tag will fall back to `DEFAULT_LOCALE` on their next login.
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "title": "User Management",
+  "users": "Users",
+  "columns": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "supervisor": "Supervisor"
+  },
+  "accounts": "Accounts",
+  "hide": "Hide",
+  "noSupervisor": "None",
+  "accountsHeader": "Account Numbers for {{name}}",
+  "accountNumber": "Account #",
+  "accountLabel": "Label",
+  "deactivate": "Deactivate"
+}

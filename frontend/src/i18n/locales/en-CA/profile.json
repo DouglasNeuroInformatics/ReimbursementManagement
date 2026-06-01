@@ -1,0 +1,20 @@
+{
+  "title": "Profile",
+  "account": "Account",
+  "name": "Name",
+  "email": "Email",
+  "role": "Role",
+  "memberSince": "Member since",
+  "contactSection": "Contact & Position",
+  "fields": {
+    "jobPosition": "Job Position",
+    "jobPositionPlaceholder": "e.g. Senior Analyst",
+    "phone": "Phone",
+    "phonePlaceholder": "e.g. +1 613 555 0100",
+    "extension": "Work Extension",
+    "extensionPlaceholder": "e.g. 4201",
+    "address": "Address",
+    "addressPlaceholder": "123 Main St\nOttawa ON  K1A 0A9"
+  },
+  "language": "Language"
+}

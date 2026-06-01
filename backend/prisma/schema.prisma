@@ -52,7 +52,8 @@ model User {
   phone        String?
   extension    String?
   address      String?
-  role         Role     @default(USER)
+  role             Role     @default(USER)
+  preferredLocale  String   @default("fr-CA")
   supervisorId String?
   supervisor   User?    @relation("SupervisorUsers", fields: [supervisorId], references: [id])
   subordinates User[]   @relation("SupervisorUsers")

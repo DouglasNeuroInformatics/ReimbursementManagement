@@ -21,13 +21,13 @@ type Verb = "approve" | "reject";
 
 function assertSupervisorStageActionable(status: RequestStatus, verb: Verb): void {
   if (status !== "SUBMITTED") {
-    throw new AppError(400, `Cannot ${verb} request with status: ${status}`);
+    throw new AppError(400, "APPROVAL_WRONG_STATUS", { verb, status });
   }
 }
 
 function assertFinanceStageActionable(status: RequestStatus, verb: Verb): void {
   if (status !== "SUPERVISOR_APPROVED" && status !== "FINANCE_REVIEWING") {
-    throw new AppError(400, `Cannot ${verb} request with status: ${status}`);
+    throw new AppError(400, "APPROVAL_WRONG_STATUS", { verb, status });
   }
 }
 
@@ -42,20 +42,20 @@ export async function supervisorApprove(
     where: { id: requestId },
     include: { user: { select: { supervisorId: true } } },
   });
-  if (!request) throw new AppError(404, "Request not found");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
   assertSupervisorStageActionable(request.status, "approve");
   if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
-    throw new AppError(403, "This request is assigned to a different supervisor");
+    throw new AppError(403, "APPROVAL_WRONG_SUPERVISOR");
   }
 
   const account = await prisma.supervisorAccount.findFirst({
     where: { id: accountId, supervisorId },
   });
   if (!account) {
-    throw new AppError(400, "Account not found for this supervisor");
+    throw new AppError(400, "APPROVAL_ACCOUNT_NOT_FOUND");
   }
   if (!account.isActive) {
-    throw new AppError(400, "Selected account is inactive");
+    throw new AppError(400, "APPROVAL_ACCOUNT_INACTIVE");
   }
 
   return prisma.$transaction(async (tx) => {
@@ -90,10 +90,10 @@ export async function supervisorReject(
     where: { id: requestId },
     include: { user: { select: { supervisorId: true } } },
   });
-  if (!request) throw new AppError(404, "Request not found");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
   assertSupervisorStageActionable(request.status, "reject");
   if (request.user.supervisorId && request.user.supervisorId !== supervisorId && actorRole !== "FINANCIAL_ADMIN") {
-    throw new AppError(403, "This request is assigned to a different supervisor");
+    throw new AppError(403, "APPROVAL_WRONG_SUPERVISOR");
   }
 
   return prisma.$transaction(async (tx) => {
@@ -132,7 +132,7 @@ export async function financeApprove(
     const locked = await tx.$queryRaw<Array<{ id: string; status: string }>>`
       SELECT id, status FROM "Request" WHERE id = ${requestId} FOR UPDATE
     `;
-    if (locked.length === 0) throw new AppError(404, "Request not found");
+    if (locked.length === 0) throw new AppError(404, "REQUEST_NOT_FOUND");
     assertFinanceStageActionable(locked[0].status as RequestStatus, "approve");
 
     const existing = await tx.approval.findMany({
@@ -141,17 +141,14 @@ export async function financeApprove(
       distinct: ["actorId"],
     });
     if (existing.some((a) => a.actorId === adminId)) {
-      throw new AppError(400, "You have already approved this request");
+      throw new AppError(400, "APPROVAL_ALREADY_APPROVED");
     }
 
     const willBeFullyApproved = existing.length + 1 >= required;
     if (willBeFullyApproved) {
       const classified = await allItemsClassified(requestId, tx);
       if (!classified) {
-        throw new AppError(
-          400,
-          "All items must be classified with a code secondaire before final approval",
-        );
+        throw new AppError(400, "APPROVAL_ITEMS_NOT_CLASSIFIED");
       }
     }
 
@@ -181,7 +178,7 @@ export async function financeReject(
   comment?: string,
 ) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
   assertFinanceStageActionable(request.status, "reject");
 
   return prisma.$transaction(async (tx) => {
@@ -211,9 +208,9 @@ export async function markPaid(
   comment?: string,
 ) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
   if (request.status !== "FINANCE_APPROVED") {
-    throw new AppError(400, `Cannot mark paid request with status: ${request.status}`);
+    throw new AppError(400, "APPROVAL_PAID_WRONG_STATUS", { status: request.status });
   }
   return prisma.$transaction(async (tx) => {
     await tx.request.update({

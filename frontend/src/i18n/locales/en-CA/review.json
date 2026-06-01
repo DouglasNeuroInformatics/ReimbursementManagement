@@ -1,0 +1,15 @@
+{
+  "queue": "Review Queue",
+  "history": "Request History",
+  "approve": "Approve",
+  "reject": "Reject",
+  "chargeAccount": "Charge to Account",
+  "chargeAccountPlaceholder": "Select account...",
+  "commentNotePlaceholder": "Add a note for the requester...",
+  "comment": "Comment",
+  "commentOptional": "Comment (optional)",
+  "noPendingRequests": "No pending requests to review.",
+  "noHistory": "No request history.",
+  "yourDecision": "Your Decision",
+  "notFound": "Not found."
+}

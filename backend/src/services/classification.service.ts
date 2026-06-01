@@ -56,18 +56,15 @@ export async function classifyItem(
   _adminId: string,
 ) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
   if (!CLASSIFIABLE_STATUSES.includes(request.status)) {
-    throw new AppError(
-      400,
-      `Cannot classify items on request with status: ${request.status}`,
-    );
+    throw new AppError(400, "CLASSIFICATION_WRONG_STATUS", { status: request.status });
   }
 
   const handler = ITEM_HANDLERS[itemType];
   const item = await handler.findRequestId(itemId);
   if (!item || item.detail.requestId !== requestId) {
-    throw new AppError(404, `${handler.label} not found in this request`);
+    throw new AppError(404, "CLASSIFICATION_ITEM_NOT_FOUND", { itemLabel: handler.label });
   }
   const code = codeSecondaire || null;
   await handler.setCode(itemId, code);

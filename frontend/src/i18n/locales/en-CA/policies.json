@@ -1,0 +1,109 @@
+{
+  "header": "Reimbursement Policies",
+  "requiredDocumentation": "Required documentation:",
+  "equipment": {
+    "title": "Equipment Purchase",
+    "description": "Equipment purchases over $1,000 require additional approval",
+    "requirements": ["Complete A1 form required for equipment over $1,000"],
+    "documentation": ["A1 form", "Detailed itemized receipt"],
+    "notes": "Contact division.admin.comtl@ssss.gouv.qc.ca for questions about equipment reimbursement"
+  },
+  "conference_registration": {
+    "title": "Conference Registration",
+    "description": "Conference registration fees",
+    "requirements": ["Names and titles of all registered individuals must be indicated"],
+    "documentation": ["Receipt with names and titles"]
+  },
+  "car_rental": {
+    "title": "Car Rental",
+    "description": "Car rental and insurance costs",
+    "requirements": ["Insurance must be purchased"],
+    "documentation": ["Rental agreement", "Insurance proof", "Detailed receipt"],
+    "notes": "Charges for damages when insurance has not been purchased will not be reimbursed"
+  },
+  "gas": {
+    "title": "Gas/Fuel",
+    "description": "Fuel for rental car only",
+    "requirements": ["Car rental must be documented"],
+    "documentation": ["Detailed receipt", "Rental agreement"],
+    "notes": "Gas for personal vehicles is not eligible; use mileage rate instead"
+  },
+  "mileage": {
+    "title": "Personal Vehicle Mileage",
+    "description": "Use of personal vehicle for travel",
+    "requirements": ["Google map of route taken required"],
+    "documentation": ["Google map showing route", "Detailed receipt"],
+    "notes": "Rate: $0.640/km CAD"
+  },
+  "taxi": {
+    "title": "Taxi/Transportation",
+    "description": "Taxi and local transportation",
+    "requirements": ["Detailed receipt required"],
+    "documentation": ["Date of service", "Vendor name and contact details", "Breakdown of charges", "Total amount paid"]
+  },
+  "parking": {
+    "title": "Parking",
+    "description": "Parking fees during business travel",
+    "requirements": ["Detailed receipt required"],
+    "documentation": ["Date of service", "Vendor name and contact details", "Breakdown of charges", "Total amount paid"]
+  },
+  "airfare": {
+    "title": "Airfare/Bus/Train",
+    "description": "Transportation fares",
+    "requirements": ["Lowest fare required for tri-council grants", "Boarding passes required", "Details for any change/baggage fees required"],
+    "documentation": ["Boarding passes", "Receipt with fare breakdown", "Seat selection proof if applicable"],
+    "notes": "Cost of fare, seat selection, and change fees are eligible"
+  },
+  "accommodations": {
+    "title": "Accommodations",
+    "description": "Hotel/motel/rental accommodations",
+    "requirements": ["Standard rooms in publicly available, registered business"],
+    "documentation": ["Detailed receipts", "Itemized bill"],
+    "notes": "For private stays with family/friends/colleagues: $30.00/night (provide written details of location and nights)"
+  },
+  "meals": {
+    "title": "Meals",
+    "description": "Food expenses during business travel",
+    "requirements": ["Itemized receipts required (standalone credit/debit slips not accepted)", "Per diem rates may be claimed in lieu of itemized receipts", "Per diem should be adjusted if meals are provided at the event"],
+    "documentation": ["Itemized receipt with breakdown of charges, fees, and taxes"],
+    "notes": "Alcohol is not eligible for reimbursement from grant funds. May only be reimbursed on an exception basis with Director approval."
+  },
+  "alcohol": {
+    "title": "Alcohol",
+    "description": "Alcohol expenses",
+    "requirements": ["Director approval required", "Exception basis only"],
+    "documentation": ["Director approval documentation"],
+    "notes": "Not eligible from grant funds. May be reimbursed based on eligible funding source in keeping with McGill hospitality policy"
+  },
+  "exchange_rate": {
+    "title": "Foreign Currency Exchange",
+    "description": "Expenses in foreign currency",
+    "requirements": ["Documentation indicating amount paid in CAD required", "Or use Bank of Canada rates on day of purchase"],
+    "documentation": ["Bank/credit card statement showing CAD amount", "OR Bank of Canada exchange rate proof"],
+    "notes": "For exact amounts, documentation showing CAD equivalent required. Otherwise, Bank of Canada rates on purchase date will be used."
+  },
+  "advance_request": {
+    "title": "Advance Request Estimations",
+    "description": "Guidelines for estimating travel advance amounts",
+    "requirements": ["Use per-diem rates and standard transportation/accommodation rules to estimate costs"],
+    "documentation": ["Supporting documentation is not required at the advance stage, but will be required upon return"],
+    "notes": "Any unspent advance funds must be returned. If actual expenses exceed the advance, a supplement can be requested."
+  },
+  "receipts": {
+    "title": "Receipt Requirements",
+    "description": "All receipts must meet strict digital submission requirements",
+    "requirements": ["Ensure the full document is clearly legible with no cut-off edges", "Must be issued in the name of the claimant", "Include an itemized breakdown of all charges, fees, and taxes", "Clearly indicate payment method, date of service, and complete vendor information"],
+    "documentation": ["High-quality photo or original PDF (preferred)"],
+    "notes": "Credit card/debit slips alone are not accepted as valid receipts. Retain original physical copies for 7 years."
+  },
+  "eligibility": {
+    "title": "Eligible Expenses",
+    "description": "Only eligible expenses will be reimbursed",
+    "requirements": ["Expenses must be for researchers or eligible staff/students only", "Not for personal reasons or family/personal contacts", "Direct cost of research for which funds were awarded", "Benefits directly attributable to the grant", "Effective and economical", "Not result in personal gain for research team members"],
+    "documentation": ["Proof of eligibility for all claimants"],
+    "notes": "Reimbursements may be adjusted based on granting agency and organizational policies"
+  },
+  "validation": {
+    "RECEIPT_MISSING_ITEMIZATION": "Receipt must include itemized breakdown of all charges, fees, and taxes"
+  }
+}

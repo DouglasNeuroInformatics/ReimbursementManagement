@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sumAmounts } from './currency'
+import { sumAmounts, fmtCurrency } from './currency'
 
 describe('sumAmounts', () => {
   it('returns 0 for empty array', () => {
@@ -25,5 +25,40 @@ describe('sumAmounts', () => {
 
   it('skips NaN amounts (e.g., empty strings) without polluting the total', () => {
     expect(sumAmounts([{ amount: '' }, { amount: '5.00' }])).toBe(5)
+  })
+})
+
+// Intl.NumberFormat output varies slightly across ICU versions (CA$ vs $,
+// NBSP vs U+202F narrow NBSP, etc.). The assertions below match the *shape*
+// of the localized output rather than an exact string, so the tests stay
+// stable across Node updates.
+describe('fmtCurrency', () => {
+  it('returns "—" for NaN-coercible input', () => {
+    expect(fmtCurrency('not-a-number')).toBe('—')
+  })
+
+  it('formats en-CA with period decimal and comma group separator', () => {
+    const v = fmtCurrency(1234.56, 'en-CA')
+    expect(v).toMatch(/1,234\.56/)
+    expect(v).toContain('$')
+  })
+
+  it('formats fr-CA with comma decimal and trailing $ symbol', () => {
+    const v = fmtCurrency(1234.56, 'fr-CA')
+    // Either NBSP (U+00A0) or narrow NBSP (U+202F) is acceptable as the
+    // group separator, depending on ICU version.
+    expect(v).toMatch(/1[  ]234,56/)
+    expect(v).toContain('$')
+  })
+
+  it('accepts numeric and string inputs equivalently for the same locale', () => {
+    expect(fmtCurrency('99.99', 'en-CA')).toBe(fmtCurrency(99.99, 'en-CA'))
+  })
+
+  it('memoizes formatters per locale (smoke test)', () => {
+    // Repeated calls must not throw; results stable for same input.
+    const a = fmtCurrency(10, 'en-CA')
+    const b = fmtCurrency(10, 'en-CA')
+    expect(a).toBe(b)
   })
 })

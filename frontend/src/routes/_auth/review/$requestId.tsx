@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useRequest, useSupervisorApprove, useSupervisorReject } from '../../../hooks/useRequests'
 import { useAuth } from '../../../hooks/useAuth'
 import { StatusBadge } from '../../../components/ui/Badge'
@@ -17,9 +18,10 @@ function ReviewDetailPage() {
   const approve = useSupervisorApprove(requestId)
   const reject = useSupervisorReject(requestId)
   const navigate = useNavigate()
+  const { t } = useTranslation(['review', 'requests', 'enums'])
 
   if (isLoading) return <PageSpinner />
-  if (!request) return <div className="text-center py-12 text-gray-500">Not found.</div>
+  if (!request) return <div className="text-center py-12 text-gray-500">{t('notFound')}</div>
 
   const onApprove = async (data: { accountId: string; comment?: string }) => {
     await approve.mutateAsync(data)
@@ -36,8 +38,8 @@ function ReviewDetailPage() {
         <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
         <div className="flex items-center gap-3 mt-1">
           <StatusBadge status={request.status} />
-          <span className="text-sm text-gray-500">{request.type.replace(/_/g, ' ')}</span>
-          <span className="text-sm text-gray-500">by {request.user.firstName} {request.user.lastName}</span>
+          <span className="text-sm text-gray-500">{t(`requestType.${request.type}`, { ns: 'enums' }) as string}</span>
+          <span className="text-sm text-gray-500">{t('requests:byUser', { first: request.user.firstName, last: request.user.lastName })}</span>
         </div>
       </div>
 
@@ -45,7 +47,7 @@ function ReviewDetailPage() {
 
       {request.status === 'SUBMITTED' && user && (
         <Card>
-          <CardHeader><span className="font-semibold">Your Decision</span></CardHeader>
+          <CardHeader><span className="font-semibold">{t('yourDecision')}</span></CardHeader>
           <CardBody>
             <SupervisorApprovalForm
               supervisorId={user.id}

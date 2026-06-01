@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../../lib/api'
 import { Button } from '../../../components/ui/Button'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/_auth/admin/users')({ component: AdminUse
 
 function AdminUsersPage() {
   const qc = useQueryClient()
+  const { t } = useTranslation(['admin', 'enums', 'forms'])
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => api.get<{ users: User[] }>('/api/users').then((r) => r.users),
@@ -30,17 +32,17 @@ function AdminUsersPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
       <Card>
-        <CardHeader><span className="font-semibold">Users</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('users')}</span></CardHeader>
         <CardBody className="p-0">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Supervisor</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">{t('columns.name')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">{t('columns.email')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">{t('columns.role')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">{t('columns.supervisor')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -59,6 +61,7 @@ function AdminUsersPage() {
 function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving, onToggleAccounts, showAccounts, qc }: {
   user: User; supervisors: User[]; onEdit: () => void; editing: boolean; onSave: (d: Partial<{ role: string; supervisorId: string | null }>) => void; onCancel: () => void; saving: boolean; onToggleAccounts: () => void; showAccounts: boolean; qc: ReturnType<typeof useQueryClient>
 }) {
+  const { t } = useTranslation(['admin', 'enums', 'forms'])
   const [role, setRole] = useState(user.role)
   const [supervisorId, setSupervisorId] = useState(user.supervisorId ?? '')
 
@@ -88,16 +91,16 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
         <td className="px-4 py-3">
           {editing ? (
             <select value={role} onChange={(e) => setRole(e.target.value as User['role'])} className="border border-gray-300 rounded px-2 py-1 text-sm">
-              <option value="USER">USER</option>
-              <option value="SUPERVISOR">SUPERVISOR</option>
-              <option value="FINANCIAL_ADMIN">FINANCIAL_ADMIN</option>
+              <option value="USER">{t('role.USER', { ns: 'enums' }) as string}</option>
+              <option value="SUPERVISOR">{t('role.SUPERVISOR', { ns: 'enums' }) as string}</option>
+              <option value="FINANCIAL_ADMIN">{t('role.FINANCIAL_ADMIN', { ns: 'enums' }) as string}</option>
             </select>
-          ) : user.role}
+          ) : (t(`role.${user.role}`, { ns: 'enums' }) as string)}
         </td>
         <td className="px-4 py-3">
           {editing ? (
             <select value={supervisorId} onChange={(e) => setSupervisorId(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm">
-              <option value="">None</option>
+              <option value="">{t('noSupervisor')}</option>
               {supervisors.filter((s) => s.id !== user.id).map((s) => (
                 <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
               ))}
@@ -108,14 +111,14 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
           <div className="flex items-center gap-2">
             {editing ? (
               <>
-                <Button size="sm" onClick={() => onSave({ role, supervisorId: supervisorId || null })} loading={saving}>Save</Button>
-                <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
+                <Button size="sm" onClick={() => onSave({ role, supervisorId: supervisorId || null })} loading={saving}>{t('forms:save')}</Button>
+                <Button size="sm" variant="ghost" onClick={onCancel}>{t('forms:cancel')}</Button>
               </>
             ) : (
-              <Button size="sm" variant="secondary" onClick={onEdit}>Edit</Button>
+              <Button size="sm" variant="secondary" onClick={onEdit}>{t('forms:edit')}</Button>
             )}
             {(user.role === 'SUPERVISOR' || user.role === 'FINANCIAL_ADMIN') && (
-              <Button size="sm" variant="ghost" onClick={onToggleAccounts}>{showAccounts ? 'Hide' : 'Accounts'}</Button>
+              <Button size="sm" variant="ghost" onClick={onToggleAccounts}>{showAccounts ? t('hide') : t('accounts')}</Button>
             )}
           </div>
         </td>
@@ -124,17 +127,17 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
         <tr>
           <td colSpan={5} className="bg-gray-50 px-8 py-4">
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Account Numbers for {user.firstName} {user.lastName}</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('accountsHeader', { name: `${user.firstName} ${user.lastName}` })}</p>
               {accounts.map((a) => (
                 <div key={a.id} className="flex items-center justify-between py-1 px-3 bg-white border border-gray-100 rounded text-sm">
                   <span className={a.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}>{a.accountNumber} — {a.label}</span>
-                  {a.isActive && <Button size="sm" variant="ghost" onClick={() => deactivateAccount.mutate(a.id)}>Deactivate</Button>}
+                  {a.isActive && <Button size="sm" variant="ghost" onClick={() => deactivateAccount.mutate(a.id)}>{t('deactivate')}</Button>}
                 </div>
               ))}
               <div className="flex gap-2">
-                <input placeholder="Account #" value={newAccNum} onChange={(e) => setNewAccNum(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm w-32" />
-                <input placeholder="Label" value={newAccLabel} onChange={(e) => setNewAccLabel(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" />
-                <Button size="sm" onClick={() => { if (newAccNum && newAccLabel) { addAccount.mutate({ accountNumber: newAccNum, label: newAccLabel }); setNewAccNum(''); setNewAccLabel('') } }} loading={addAccount.isPending}>Add</Button>
+                <input placeholder={t('accountNumber') as string} value={newAccNum} onChange={(e) => setNewAccNum(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm w-32" />
+                <input placeholder={t('accountLabel') as string} value={newAccLabel} onChange={(e) => setNewAccLabel(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" />
+                <Button size="sm" onClick={() => { if (newAccNum && newAccLabel) { addAccount.mutate({ accountNumber: newAccNum, label: newAccLabel }); setNewAccNum(''); setNewAccLabel('') } }} loading={addAccount.isPending}>{t('forms:add')}</Button>
               </div>
             </div>
           </td>

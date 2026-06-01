@@ -146,8 +146,8 @@ export async function getRequest(
     where: { id: requestId },
     include: requestInclude,
   });
-  if (!request) throw new AppError(404, "Request not found");
-  if (!canView(request, userId, role)) throw new AppError(403, "Access denied");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
+  if (!canView(request, userId, role)) throw new AppError(403, "REQUEST_ACCESS_DENIED");
   return request;
 }
 
@@ -171,10 +171,10 @@ export async function updateRequest(
 ) {
   const request = await getRequest(requestId, userId, role);
   if (!EDITABLE_STATUSES.includes(request.status)) {
-    throw new AppError(400, `Cannot edit request with status: ${request.status}`);
+    throw new AppError(400, "REQUEST_WRONG_STATUS_EDIT", { status: request.status });
   }
   if (request.userId !== userId) {
-    throw new AppError(403, "Only the request owner can edit it");
+    throw new AppError(403, "REQUEST_OWNER_ONLY_EDIT");
   }
 
   await prisma.$transaction(async (tx) => {
@@ -290,10 +290,10 @@ export async function updateRequest(
           where: { id: tr.advanceRequestId },
           select: { userId: true, type: true, status: true },
         });
-        if (!advance) throw new AppError(400, "Linked travel advance does not exist");
-        if (advance.userId !== userId) throw new AppError(400, "Linked travel advance does not belong to you");
-        if (advance.type !== "TRAVEL_ADVANCE") throw new AppError(400, "Linked request is not a travel advance");
-        if (advance.status !== "PAID") throw new AppError(400, "Linked travel advance must be paid");
+        if (!advance) throw new AppError(400, "LINKED_ADVANCE_MISSING");
+        if (advance.userId !== userId) throw new AppError(400, "LINKED_ADVANCE_NOT_OWNED");
+        if (advance.type !== "TRAVEL_ADVANCE") throw new AppError(400, "LINKED_ADVANCE_WRONG_TYPE");
+        if (advance.status !== "PAID") throw new AppError(400, "LINKED_ADVANCE_NOT_PAID");
       }
       const detail = await tx.travelReimbursementDetail.upsert({
         where: { requestId },
@@ -339,10 +339,10 @@ export async function updateRequest(
 
 export async function deleteRequest(requestId: string, userId: string) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
-  if (request.userId !== userId) throw new AppError(403, "Access denied");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
+  if (request.userId !== userId) throw new AppError(403, "REQUEST_ACCESS_DENIED");
   if (request.status !== "DRAFT") {
-    throw new AppError(400, `Cannot delete request with status: ${request.status}`);
+    throw new AppError(400, "REQUEST_WRONG_STATUS_DELETE", { status: request.status });
   }
   // Clean up S3 objects before deleting the request (cascade deletes DB docs)
   const { deleteRequestDocuments } = await import("./storage.service.ts");
@@ -358,22 +358,22 @@ export async function submitRequest(requestId: string, userId: string) {
       travelReimbursement: { select: { destination: true, purpose: true } },
     },
   });
-  if (!request) throw new AppError(404, "Request not found");
-  if (request.userId !== userId) throw new AppError(403, "Access denied");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
+  if (request.userId !== userId) throw new AppError(403, "REQUEST_ACCESS_DENIED");
   if (request.status !== "DRAFT") {
-    throw new AppError(400, `Cannot submit request with status: ${request.status}`);
+    throw new AppError(400, "REQUEST_WRONG_STATUS_SUBMIT", { status: request.status });
   }
 
   if (request.type === "TRAVEL_ADVANCE") {
     const ta = request.travelAdvance;
-    if (!ta) throw new AppError(400, "Travel details are required before submission");
-    if (!ta.destination.trim()) throw new AppError(400, "Destination is required");
-    if (!ta.purpose.trim()) throw new AppError(400, "Purpose is required");
+    if (!ta) throw new AppError(400, "TRAVEL_DETAILS_REQUIRED");
+    if (!ta.destination.trim()) throw new AppError(400, "TRAVEL_DESTINATION_REQUIRED");
+    if (!ta.purpose.trim()) throw new AppError(400, "TRAVEL_PURPOSE_REQUIRED");
   } else if (request.type === "TRAVEL_REIMBURSEMENT") {
     const tr = request.travelReimbursement;
-    if (!tr) throw new AppError(400, "Travel details are required before submission");
-    if (!tr.destination.trim()) throw new AppError(400, "Destination is required");
-    if (!tr.purpose.trim()) throw new AppError(400, "Purpose is required");
+    if (!tr) throw new AppError(400, "TRAVEL_DETAILS_REQUIRED");
+    if (!tr.destination.trim()) throw new AppError(400, "TRAVEL_DESTINATION_REQUIRED");
+    if (!tr.purpose.trim()) throw new AppError(400, "TRAVEL_PURPOSE_REQUIRED");
   }
 
   return prisma.request.update({
@@ -384,13 +384,13 @@ export async function submitRequest(requestId: string, userId: string) {
 
 export async function reviseRequest(requestId: string, userId: string) {
   const request = await prisma.request.findUnique({ where: { id: requestId } });
-  if (!request) throw new AppError(404, "Request not found");
-  if (request.userId !== userId) throw new AppError(403, "Access denied");
+  if (!request) throw new AppError(404, "REQUEST_NOT_FOUND");
+  if (request.userId !== userId) throw new AppError(403, "REQUEST_ACCESS_DENIED");
   if (
     request.status !== "SUPERVISOR_REJECTED" &&
     request.status !== "FINANCE_REJECTED"
   ) {
-    throw new AppError(400, `Cannot revise request with status: ${request.status}`);
+    throw new AppError(400, "REQUEST_WRONG_STATUS_REVISE", { status: request.status });
   }
   return prisma.request.update({
     where: { id: requestId },

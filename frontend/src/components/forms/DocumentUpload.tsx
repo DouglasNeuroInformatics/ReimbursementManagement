@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGetDocumentUrl, useDeleteDocument } from '../../hooks/useDocuments'
 import type { Document } from '../../types'
 
@@ -34,18 +35,19 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
   const dragCounter = useRef(0)
   const getUrl = useGetDocumentUrl(requestId ?? '')
   const deleteDoc = useDeleteDocument(requestId ?? '')
+  const { t } = useTranslation('forms')
 
   const handleFiles = (incoming: FileList | null) => {
     if (!incoming) return
     const valid: File[] = []
     const rejected: string[] = []
     for (const f of Array.from(incoming)) {
-      if (f.size > MAX_MB * 1024 * 1024) { alert(`${f.name} exceeds ${MAX_MB}MB limit`); continue }
+      if (f.size > MAX_MB * 1024 * 1024) { alert(t('upload.exceedsMaxSize', { name: f.name, maxMb: MAX_MB })); continue }
       if (!ALLOWED_TYPES.has(f.type)) { rejected.push(f.name); continue }
       valid.push(f)
     }
     if (rejected.length > 0) {
-      alert(`Unsupported file type: ${rejected.join(', ')}\nAllowed: PDF, images, Word, Excel, CSV, plain text`)
+      alert(t('upload.unsupportedFileTypes', { names: rejected.join(', ') }))
     }
     if (valid.length > 0) onChange([...files, ...valid])
   }
@@ -56,7 +58,7 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
         <div
           role="button"
           tabIndex={0}
-          aria-label="Drop zone for file uploads. Click or press Enter to browse files."
+          aria-label={t('upload.dragDropOrBrowse') as string}
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
             dragOver
               ? 'border-blue-500 bg-blue-50'
@@ -73,18 +75,18 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {dragOver ? (
-            <p className="text-sm font-medium text-blue-600">Drop files to upload</p>
+            <p className="text-sm font-medium text-blue-600">{t('upload.dropToUpload')}</p>
           ) : (
-            <p className="text-sm text-gray-500">Drag & drop files here, or <span className="text-blue-600 font-medium">browse</span></p>
+            <p className="text-sm text-gray-500">{t('upload.dragDropOrBrowse')} <span className="text-blue-600 font-medium">{t('browse')}</span></p>
           )}
-          <p className="text-xs text-gray-400 mt-1">PDF, images, Word, Excel {"\u2014"} max {MAX_MB}MB each</p>
+          <p className="text-xs text-gray-400 mt-1">{t('upload.fileTypeHint', { maxMb: MAX_MB })}</p>
           <input ref={inputRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={(e) => { handleFiles(e.target.files); e.target.value = '' }} />
         </div>
       )}
 
       {existingDocs.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Uploaded</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('upload.uploaded')}</p>
           {existingDocs.map((doc) => (
             <div key={doc.id} className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg text-sm">
               <span className="text-gray-700 truncate">{doc.filename}</span>
@@ -93,10 +95,10 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
                   className="text-blue-600 hover:underline text-xs"
                   onClick={async () => { const url = await getUrl.mutateAsync(doc.id); window.open(url, '_blank') }}
                 >
-                  Download
+                  {t('upload.download')}
                 </button>
                 {requestId && !readOnly && (
-                  <button className="text-red-400 hover:text-red-600 text-xs" onClick={() => deleteDoc.mutate(doc.id)}>Remove</button>
+                  <button className="text-red-400 hover:text-red-600 text-xs" onClick={() => deleteDoc.mutate(doc.id)}>{t('remove')}</button>
                 )}
               </div>
             </div>
@@ -106,11 +108,11 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
 
       {files.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending upload</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('upload.pending')}</p>
           {files.map((f, i) => (
             <div key={`${f.name}-${f.size}-${f.lastModified}`} className="flex items-center justify-between py-1.5 px-3 bg-blue-50 rounded-lg text-sm">
               <span className="text-gray-700 truncate">{f.name}</span>
-              <button className="text-red-400 hover:text-red-600 text-xs ml-2" onClick={() => onChange(files.filter((_, idx) => idx !== i))}>Remove</button>
+              <button className="text-red-400 hover:text-red-600 text-xs ml-2" onClick={() => onChange(files.filter((_, idx) => idx !== i))}>{t('remove')}</button>
             </div>
           ))}
         </div>

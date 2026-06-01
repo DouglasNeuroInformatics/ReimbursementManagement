@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table'
 import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { StatusBadge } from '../ui/Badge'
 import type { Request } from '../../types'
 import { fmtDate } from '../../utils/dates'
@@ -25,11 +26,12 @@ interface Props {
 export function RequestsTable({ data, linkTo, showUser = false, showAccount = false }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const navigate = useNavigate()
+  const { t } = useTranslation(['requests', 'enums'])
 
   const columns = [
-    ...(showUser ? [col.accessor((r) => `${r.user.firstName} ${r.user.lastName}`, { id: 'user', header: 'User' })] : []),
+    ...(showUser ? [col.accessor((r) => `${r.user.firstName} ${r.user.lastName}`, { id: 'user', header: t('columns.user') as string })] : []),
     col.accessor('title', {
-      header: 'Title',
+      header: t('columns.title') as string,
       cell: (info) => (
         <Link
           to={linkTo(info.row.original) as never}
@@ -40,27 +42,27 @@ export function RequestsTable({ data, linkTo, showUser = false, showAccount = fa
       ),
     }),
     col.accessor('type', {
-      header: 'Type',
-      cell: (info) => info.getValue().replace(/_/g, ' '),
+      header: t('columns.type') as string,
+      cell: (info) => t(`requestType.${info.getValue()}`, { ns: 'enums' }) as string,
     }),
     col.accessor('status', {
-      header: 'Status',
+      header: t('columns.status') as string,
       cell: (info) => <StatusBadge status={info.getValue()} />,
     }),
     ...(showAccount ? [col.accessor(
       (r) => r.approvals?.find((a) => a.stage === 'SUPERVISOR' && a.action === 'APPROVE')?.account?.accountNumber ?? '—',
-      { id: 'account', header: 'Account' },
+      { id: 'account', header: t('columns.account') as string },
     )] : []),
     col.accessor((r) => getRequestTotal(r), {
       id: 'amount',
-      header: 'Amount',
+      header: t('columns.amount') as string,
       cell: (info) => {
         const v = info.getValue()
         return v !== null ? <span className="font-medium">{fmtCurrency(v)}</span> : '—'
       },
     }),
     col.accessor('submittedAt', {
-      header: 'Submitted',
+      header: t('columns.submitted') as string,
       cell: (info) => fmtDate(info.getValue()),
     }),
   ]
@@ -75,7 +77,7 @@ export function RequestsTable({ data, linkTo, showUser = false, showAccount = fa
   })
 
   if (!data.length) {
-    return <div className="text-center py-12 text-gray-500 text-sm">No requests found.</div>
+    return <div className="text-center py-12 text-gray-500 text-sm">{t('noneFound')}</div>
   }
 
   return (
@@ -103,7 +105,6 @@ export function RequestsTable({ data, linkTo, showUser = false, showAccount = fa
               key={row.id}
               className="hover:bg-gray-50 cursor-pointer"
               onClick={(e) => {
-                // Don't navigate if clicking on a link (already handled by Link component)
                 if (e.target instanceof HTMLAnchorElement) return;
                 navigate({ to: linkTo(row.original) as never });
               }}

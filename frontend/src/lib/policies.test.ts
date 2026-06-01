@@ -4,11 +4,12 @@ import {
   isEquipmentExpense,
   getMileageReimbursement,
   validateReceiptRequirements,
-  PER_DIEM_RATES,
   MILEAGE_RATE_KM,
   EXPENSE_POLICIES,
   FORM_VALIDATION,
 } from './policies'
+import enPolicies from '../i18n/locales/en-CA/policies.json'
+import frPolicies from '../i18n/locales/fr-CA/policies.json'
 
 describe('getPerDiemRate', () => {
   it('returns Canada rates', () => {
@@ -41,58 +42,35 @@ describe('getPerDiemRate', () => {
 })
 
 describe('isEquipmentExpense', () => {
-  it('returns true for amount at threshold', () => {
-    expect(isEquipmentExpense(1000)).toBe(true)
-  })
-
-  it('returns true for amount above threshold', () => {
-    expect(isEquipmentExpense(1500)).toBe(true)
-  })
-
-  it('returns false for amount below threshold', () => {
-    expect(isEquipmentExpense(999.99)).toBe(false)
-  })
-
-  it('returns false for zero', () => {
-    expect(isEquipmentExpense(0)).toBe(false)
-  })
+  it('returns true at threshold', () => { expect(isEquipmentExpense(1000)).toBe(true) })
+  it('returns true above threshold', () => { expect(isEquipmentExpense(1500)).toBe(true) })
+  it('returns false below threshold', () => { expect(isEquipmentExpense(999.99)).toBe(false) })
+  it('returns false for zero', () => { expect(isEquipmentExpense(0)).toBe(false) })
 })
 
 describe('getMileageReimbursement', () => {
-  it('calculates reimbursement for given distance', () => {
-    expect(getMileageReimbursement(100)).toBeCloseTo(64.00)
-  })
-
-  it('returns 0 for 0 km', () => {
-    expect(getMileageReimbursement(0)).toBe(0)
-  })
-
-  it('handles fractional km', () => {
-    expect(getMileageReimbursement(1.5)).toBeCloseTo(0.96)
-  })
-
-  it('uses correct rate constant', () => {
-    expect(MILEAGE_RATE_KM).toBe(0.640)
-  })
+  it('calculates for given distance', () => { expect(getMileageReimbursement(100)).toBeCloseTo(64.00) })
+  it('returns 0 for 0 km', () => { expect(getMileageReimbursement(0)).toBe(0) })
+  it('handles fractional km', () => { expect(getMileageReimbursement(1.5)).toBeCloseTo(0.96) })
+  it('uses correct rate constant', () => { expect(MILEAGE_RATE_KM).toBe(0.640) })
 })
 
 describe('validateReceiptRequirements', () => {
-  it('returns valid when itemized breakdown present', () => {
-    const result = validateReceiptRequirements(true)
-    expect(result.valid).toBe(true)
-    expect(result.errors).toHaveLength(0)
+  it('valid when itemized breakdown present', () => {
+    const r = validateReceiptRequirements(true)
+    expect(r.valid).toBe(true)
+    expect(r.errorCodes).toHaveLength(0)
   })
 
-  it('returns invalid when itemized breakdown missing', () => {
-    const result = validateReceiptRequirements(false)
-    expect(result.valid).toBe(false)
-    expect(result.errors).toHaveLength(1)
-    expect(result.errors[0]).toContain('itemized breakdown')
+  it('invalid when itemized breakdown missing — returns code', () => {
+    const r = validateReceiptRequirements(false)
+    expect(r.valid).toBe(false)
+    expect(r.errorCodes).toEqual(['RECEIPT_MISSING_ITEMIZATION'])
   })
 })
 
-describe('EXPENSE_POLICIES', () => {
-  it('has all expected policy IDs', () => {
+describe('EXPENSE_POLICIES (structural)', () => {
+  it('has all expected policy ids', () => {
     const ids = EXPENSE_POLICIES.map((p) => p.id)
     expect(ids).toContain('equipment')
     expect(ids).toContain('conference_registration')
@@ -103,43 +81,57 @@ describe('EXPENSE_POLICIES', () => {
     expect(ids).toContain('eligibility')
   })
 
-  it('every policy has required fields', () => {
-    for (const policy of EXPENSE_POLICIES) {
-      expect(policy.id).toBeTruthy()
-      expect(policy.title).toBeTruthy()
-      expect(policy.category).toBeTruthy()
-      expect(policy.description).toBeTruthy()
-      expect(policy.requirements.length).toBeGreaterThan(0)
-      expect(policy.documentation.length).toBeGreaterThan(0)
+  it('every structural policy has id and category', () => {
+    for (const p of EXPENSE_POLICIES) {
+      expect(p.id).toBeTruthy()
+      expect(p.category).toBeTruthy()
     }
   })
 })
 
-describe('FORM_VALIDATION', () => {
-  it('has correct file size limit', () => {
-    expect(FORM_VALIDATION.maxFileSizeMB).toBe(50)
-  })
+// Each policy must have matching content in both locale JSON files.
+type PolicyEntry = {
+  title?: string
+  description?: string
+  requirements?: string[]
+  documentation?: string[]
+  notes?: string
+}
+const enLocale = enPolicies as unknown as Record<string, PolicyEntry>
+const frLocale = frPolicies as unknown as Record<string, PolicyEntry>
 
+describe('policies.json content parity', () => {
+  for (const policy of EXPENSE_POLICIES) {
+    it(`policy "${policy.id}" has title + description in both locales`, () => {
+      const en = enLocale[policy.id]
+      const fr = frLocale[policy.id]
+      expect(en).toBeDefined()
+      expect(fr).toBeDefined()
+      expect(en.title).toBeTruthy()
+      expect(en.description).toBeTruthy()
+      expect(fr.title).toBeTruthy()
+      expect(fr.description).toBeTruthy()
+    })
+
+    it(`policy "${policy.id}" has matching requirements/documentation array lengths across locales`, () => {
+      const en = enLocale[policy.id]
+      const fr = frLocale[policy.id]
+      expect(en.requirements?.length).toBe(fr.requirements?.length)
+      expect(en.documentation?.length).toBe(fr.documentation?.length)
+    })
+  }
+})
+
+describe('FORM_VALIDATION', () => {
+  it('has correct file size limit', () => { expect(FORM_VALIDATION.maxFileSizeMB).toBe(50) })
   it('includes common file types', () => {
     expect(FORM_VALIDATION.allowedFileTypes).toContain('application/pdf')
     expect(FORM_VALIDATION.allowedFileTypes).toContain('image/jpeg')
     expect(FORM_VALIDATION.allowedFileTypes).toContain('image/png')
     expect(FORM_VALIDATION.allowedFileTypes).toContain('text/plain')
   })
-
-  it('does not allow personal expenses', () => {
-    expect(FORM_VALIDATION.allowPersonalExpenses).toBe(false)
-  })
-
-  it('requires itemized receipts', () => {
-    expect(FORM_VALIDATION.requireItemizedReceipts).toBe(true)
-  })
-
-  it('does not accept credit card slips alone', () => {
-    expect(FORM_VALIDATION.allowCreditCardSlips).toBe(false)
-  })
-
-  it('requires 7-year receipt retention', () => {
-    expect(FORM_VALIDATION.receiptRetentionYears).toBe(7)
-  })
+  it('does not allow personal expenses', () => { expect(FORM_VALIDATION.allowPersonalExpenses).toBe(false) })
+  it('requires itemized receipts', () => { expect(FORM_VALIDATION.requireItemizedReceipts).toBe(true) })
+  it('does not accept credit card slips alone', () => { expect(FORM_VALIDATION.allowCreditCardSlips).toBe(false) })
+  it('requires 7-year receipt retention', () => { expect(FORM_VALIDATION.receiptRetentionYears).toBe(7) })
 })

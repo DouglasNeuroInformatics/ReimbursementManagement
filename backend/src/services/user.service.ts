@@ -8,6 +8,7 @@ const USER_SELECT = {
   firstName: true,
   lastName: true,
   role: true,
+  preferredLocale: true,
   supervisorId: true,
   supervisor: {
     select: { id: true, firstName: true, lastName: true, email: true },
@@ -21,6 +22,7 @@ const USER_UPDATE_SELECT = {
   firstName: true,
   lastName: true,
   role: true,
+  preferredLocale: true,
   supervisorId: true,
   supervisor: { select: { id: true, firstName: true, lastName: true } },
   updatedAt: true,
@@ -38,21 +40,18 @@ export async function updateUser(
   data: { role?: Role; supervisorId?: string | null },
 ) {
   const user = await prisma.user.findUnique({ where: { id: targetId } });
-  if (!user) throw new AppError(404, "User not found");
+  if (!user) throw new AppError(404, "USER_NOT_FOUND");
 
   if (data.supervisorId) {
     const supervisor = await prisma.user.findUnique({
       where: { id: data.supervisorId },
     });
-    if (!supervisor) throw new AppError(404, "Supervisor not found");
+    if (!supervisor) throw new AppError(404, "SUPERVISOR_NOT_FOUND");
     if (
       supervisor.role !== "SUPERVISOR" &&
       supervisor.role !== "FINANCIAL_ADMIN"
     ) {
-      throw new AppError(
-        400,
-        "Assigned supervisor must have SUPERVISOR or FINANCIAL_ADMIN role",
-      );
+      throw new AppError(400, "USER_SUPERVISOR_INVALID_ROLE");
     }
   }
 

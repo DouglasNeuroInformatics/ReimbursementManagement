@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation, Trans } from 'react-i18next'
 import { useRequest, useFinanceApprove, useFinanceReject, useMarkPaid } from '../../../hooks/useRequests'
 import { StatusBadge } from '../../../components/ui/Badge'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
@@ -21,9 +22,10 @@ function FinanceDetailPage() {
   const markPaid = useMarkPaid(requestId)
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useTranslation(['finance', 'requests', 'review', 'enums'])
 
   if (isLoading) return <PageSpinner />
-  if (!request) return <div className="text-center py-12 text-gray-500">Not found.</div>
+  if (!request) return <div className="text-center py-12 text-gray-500">{t('review:notFound')}</div>
 
   const financeApprovals = (request.approvals ?? []).filter(
     (a) => a.stage === 'FINANCE' && a.action === 'APPROVE',
@@ -53,8 +55,8 @@ function FinanceDetailPage() {
         <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
         <div className="flex items-center gap-3 mt-1">
           <StatusBadge status={request.status} />
-          <span className="text-sm text-gray-500">{request.type.replace(/_/g, ' ')}</span>
-          <span className="text-sm text-gray-500">by {request.user.firstName} {request.user.lastName}</span>
+          <span className="text-sm text-gray-500">{t(`requestType.${request.type}`, { ns: 'enums' }) as string}</span>
+          <span className="text-sm text-gray-500">{t('requests:byUser', { first: request.user.firstName, last: request.user.lastName })}</span>
         </div>
       </div>
 
@@ -69,7 +71,13 @@ function FinanceDetailPage() {
       {supervisorApproval?.account && (
         <Card>
           <CardBody>
-            <p className="text-sm text-gray-600">Charged to account: <strong>{supervisorApproval.account.accountNumber}</strong> — {supervisorApproval.account.label}</p>
+            <p className="text-sm text-gray-600">
+              <Trans
+                i18nKey="finance:chargedToAccount"
+                values={{ accountNumber: supervisorApproval.account.accountNumber, label: supervisorApproval.account.label }}
+                components={{ strong: <strong /> }}
+              />
+            </p>
           </CardBody>
         </Card>
       )}
@@ -78,7 +86,7 @@ function FinanceDetailPage() {
         request={request}
         requestId={requestId}
         extraColumn={isFinanceActionable ? {
-          header: 'Code secondaire',
+          header: t('codeSecondaire'),
           render: (item) => (
             <CodeSecondaireCell
               itemId={item.itemId}
@@ -91,7 +99,7 @@ function FinanceDetailPage() {
       />
 
       <Card>
-        <CardHeader><span className="font-semibold">Finance Action</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('action')}</span></CardHeader>
         <CardBody>
           {isFinanceActionable && (
             <FinanceApprovalForm
@@ -115,7 +123,7 @@ function FinanceDetailPage() {
             />
           )}
           {!['SUPERVISOR_APPROVED', 'FINANCE_REVIEWING', 'FINANCE_APPROVED'].includes(request.status) && (
-            <p className="text-sm text-gray-500">No action available for status: {request.status}</p>
+            <p className="text-sm text-gray-500">{t('noActionForStatus', { status: t(`status.${request.status}`, { ns: 'enums' }) as string })}</p>
           )}
         </CardBody>
       </Card>

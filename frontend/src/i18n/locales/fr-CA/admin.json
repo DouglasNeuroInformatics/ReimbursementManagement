@@ -1,0 +1,17 @@
+{
+  "title": "Gestion des utilisateurs",
+  "users": "Utilisateurs",
+  "columns": {
+    "name": "Nom",
+    "email": "Courriel",
+    "role": "Rôle",
+    "supervisor": "Superviseur"
+  },
+  "accounts": "Comptes",
+  "hide": "Masquer",
+  "noSupervisor": "Aucun",
+  "accountsHeader": "Numéros de compte pour {{name}}",
+  "accountNumber": "N° de compte",
+  "accountLabel": "Libellé",
+  "deactivate": "Désactiver"
+}

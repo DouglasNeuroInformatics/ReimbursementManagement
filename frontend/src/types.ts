@@ -1,3 +1,5 @@
+import type { Locale } from './lib/locales'
+
 export type Role = 'USER' | 'SUPERVISOR' | 'FINANCIAL_ADMIN'
 export type RequestType = 'REIMBURSEMENT' | 'TRAVEL_ADVANCE' | 'TRAVEL_REIMBURSEMENT'
 export type RequestStatus =
@@ -16,6 +18,7 @@ export interface User {
   firstName: string
   lastName: string
   role: Role
+  preferredLocale: Locale
   supervisorId: string | null
   supervisor?: { id: string; firstName: string; lastName: string; email: string } | null
   jobPosition: string | null

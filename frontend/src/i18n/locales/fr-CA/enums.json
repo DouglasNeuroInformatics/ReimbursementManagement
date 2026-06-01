@@ -1,0 +1,32 @@
+{
+  "status": {
+    "DRAFT": "Brouillon",
+    "SUBMITTED": "Soumise",
+    "SUPERVISOR_APPROVED": "Approuvée (superviseur)",
+    "SUPERVISOR_REJECTED": "Rejetée (superviseur)",
+    "FINANCE_REVIEWING": "Finances en examen",
+    "FINANCE_APPROVED": "Approuvée (finances)",
+    "FINANCE_REJECTED": "Rejetée (finances)",
+    "PAID": "Payée"
+  },
+  "role": {
+    "USER": "Utilisateur",
+    "SUPERVISOR": "Superviseur",
+    "FINANCIAL_ADMIN": "Administrateur financier"
+  },
+  "requestType": {
+    "REIMBURSEMENT": "Remboursement",
+    "TRAVEL_ADVANCE": "Avance de voyage",
+    "TRAVEL_REIMBURSEMENT": "Remboursement de voyage"
+  },
+  "stage": {
+    "SUPERVISOR": "Superviseur",
+    "FINANCE": "Finances"
+  },
+  "approvalAction": {
+    "APPROVE": "Approuvée",
+    "REJECT": "Rejetée",
+    "REQUEST_CHANGES": "Modifications demandées",
+    "PAID": "Payée"
+  }
+}

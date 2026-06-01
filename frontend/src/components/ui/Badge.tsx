@@ -1,4 +1,5 @@
 import { clsx } from 'clsx'
+import { useTranslation } from 'react-i18next'
 import type { RequestStatus } from '../../types'
 
 const STATUS_STYLES: Record<RequestStatus, string> = {
@@ -12,21 +13,11 @@ const STATUS_STYLES: Record<RequestStatus, string> = {
   PAID: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-400/20',
 }
 
-const STATUS_LABELS: Record<RequestStatus, string> = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Submitted',
-  SUPERVISOR_APPROVED: 'Supervisor Approved',
-  SUPERVISOR_REJECTED: 'Supervisor Rejected',
-  FINANCE_REVIEWING: 'Finance Reviewing',
-  FINANCE_APPROVED: 'Finance Approved',
-  FINANCE_REJECTED: 'Finance Rejected',
-  PAID: 'Paid',
-}
-
 export function StatusBadge({ status }: { status: RequestStatus }) {
+  const { t } = useTranslation('enums')
   return (
     <span className={clsx('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', STATUS_STYLES[status])}>
-      {STATUS_LABELS[status]}
+      {t(`status.${status}`) as string}
     </span>
   )
 }

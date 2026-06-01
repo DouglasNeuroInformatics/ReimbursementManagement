@@ -25,13 +25,10 @@ export async function uploadDocument(
   reimbursementItemId?: string,
 ) {
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(
-      400,
-      `File exceeds maximum size of ${MAX_FILE_SIZE / 1024 / 1024}MB`,
-    );
+    throw new AppError(400, "DOCUMENT_FILE_TOO_LARGE", { maxMb: MAX_FILE_SIZE / 1024 / 1024 });
   }
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    throw new AppError(400, `File type '${file.type}' is not allowed`);
+    throw new AppError(400, "DOCUMENT_TYPE_NOT_ALLOWED", { fileType: file.type });
   }
 
   if (reimbursementItemId) {
@@ -39,7 +36,7 @@ export async function uploadDocument(
       where: { id: reimbursementItemId, detail: { requestId } },
     });
     if (!item) {
-      throw new AppError(400, "Item does not belong to this request");
+      throw new AppError(400, "DOCUMENT_ITEM_MISMATCH");
     }
   }
 
@@ -76,7 +73,7 @@ export async function getDocumentPresignedUrl(
   const doc = await prisma.document.findFirst({
     where: { id: docId, requestId },
   });
-  if (!doc) throw new AppError(404, "Document not found");
+  if (!doc) throw new AppError(404, "DOCUMENT_NOT_FOUND");
   return getPresignedDownloadUrl(doc.s3Key, 300);
 }
 
@@ -87,7 +84,7 @@ export async function deleteDocument(
   const doc = await prisma.document.findFirst({
     where: { id: docId, requestId },
   });
-  if (!doc) throw new AppError(404, "Document not found");
+  if (!doc) throw new AppError(404, "DOCUMENT_NOT_FOUND");
   await deleteObject(doc.s3Key);
   await prisma.document.delete({ where: { id: docId } });
 }

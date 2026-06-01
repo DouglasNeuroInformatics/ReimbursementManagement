@@ -5,6 +5,7 @@ import * as authService from "../services/auth.service.ts";
 import { authenticate, csrfProtect, rateLimitAuth } from '../middleware/auth.ts';
 import { AppError } from "../middleware/error.ts";
 import { getEnv } from "../lib/env.ts";
+import { SUPPORTED_LOCALES } from "../lib/locales.ts";
 import type { HonoEnv } from "../types.ts";
 
 const router = new Hono<HonoEnv>();
@@ -59,7 +60,7 @@ router.post("/logout", csrfProtect, async (c) => {
 
 router.post("/refresh", csrfProtect, async (c) => {
   const refreshToken = getCookie(c, "refresh_token");
-  if (!refreshToken) throw new AppError(401, "No refresh token provided");
+  if (!refreshToken) throw new AppError(401, "AUTH_REFRESH_TOKEN_MISSING");
   const result = await authService.refresh(refreshToken);
   setCookie(c, "access_token", result.accessToken, cookieOptions(15 * 60));
   return c.json({ success: true });
@@ -77,6 +78,7 @@ const profileSchema = z.object({
   phone: z.string().nullable().optional(),
   extension: z.string().nullable().optional(),
   jobPosition: z.string().nullable().optional(),
+  preferredLocale: z.enum(SUPPORTED_LOCALES).optional(),
 });
 
 router.patch("/me", authenticate, csrfProtect, async (c) => {

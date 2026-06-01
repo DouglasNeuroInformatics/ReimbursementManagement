@@ -1,0 +1,15 @@
+{
+  "appName": "Système de gestion des remboursements",
+  "appTitleShort": "Remboursements",
+  "signOut": "Déconnexion",
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "myRequests": "Mes demandes",
+    "management": "Gestion",
+    "reviewQueue": "File d'examen",
+    "requestHistory": "Historique",
+    "administration": "Administration",
+    "financeQueue": "File des finances",
+    "admin": "Admin"
+  }
+}

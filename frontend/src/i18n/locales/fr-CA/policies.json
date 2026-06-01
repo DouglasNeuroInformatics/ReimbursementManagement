@@ -1,0 +1,109 @@
+{
+  "header": "Politiques de remboursement",
+  "requiredDocumentation": "Documentation requise :",
+  "equipment": {
+    "title": "Achat d'équipement",
+    "description": "Les achats d'équipement de plus de 1 000 $ nécessitent une approbation supplémentaire",
+    "requirements": ["Le formulaire A1 est requis pour tout équipement de plus de 1 000 $"],
+    "documentation": ["Formulaire A1", "Reçu détaillé et ventilé"],
+    "notes": "Contactez division.admin.comtl@ssss.gouv.qc.ca pour toute question sur le remboursement d'équipement"
+  },
+  "conference_registration": {
+    "title": "Inscription à une conférence",
+    "description": "Frais d'inscription aux conférences",
+    "requirements": ["Les noms et titres de toutes les personnes inscrites doivent être indiqués"],
+    "documentation": ["Reçu avec noms et titres"]
+  },
+  "car_rental": {
+    "title": "Location de voiture",
+    "description": "Frais de location et d'assurance d'un véhicule",
+    "requirements": ["L'assurance doit être souscrite"],
+    "documentation": ["Contrat de location", "Preuve d'assurance", "Reçu détaillé"],
+    "notes": "Les frais de dommages ne seront pas remboursés si l'assurance n'a pas été souscrite"
+  },
+  "gas": {
+    "title": "Essence/Carburant",
+    "description": "Carburant pour véhicule de location uniquement",
+    "requirements": ["La location de voiture doit être documentée"],
+    "documentation": ["Reçu détaillé", "Contrat de location"],
+    "notes": "L'essence pour véhicule personnel n'est pas admissible; utilisez plutôt le taux kilométrique"
+  },
+  "mileage": {
+    "title": "Kilométrage – véhicule personnel",
+    "description": "Utilisation d'un véhicule personnel pour les déplacements",
+    "requirements": ["Capture Google Maps de l'itinéraire requise"],
+    "documentation": ["Capture Google Maps de l'itinéraire", "Reçu détaillé"],
+    "notes": "Taux : 0,640 $ CAD/km"
+  },
+  "taxi": {
+    "title": "Taxi/Transport",
+    "description": "Taxi et transport local",
+    "requirements": ["Reçu détaillé requis"],
+    "documentation": ["Date du service", "Nom et coordonnées du fournisseur", "Ventilation des frais", "Montant total payé"]
+  },
+  "parking": {
+    "title": "Stationnement",
+    "description": "Frais de stationnement durant un déplacement professionnel",
+    "requirements": ["Reçu détaillé requis"],
+    "documentation": ["Date du service", "Nom et coordonnées du fournisseur", "Ventilation des frais", "Montant total payé"]
+  },
+  "airfare": {
+    "title": "Avion/Autobus/Train",
+    "description": "Frais de transport en commun",
+    "requirements": ["Tarif le plus bas requis pour les subventions tri-conseils", "Cartes d'embarquement requises", "Détails des frais de modification et de bagages requis"],
+    "documentation": ["Cartes d'embarquement", "Reçu avec ventilation du tarif", "Preuve de sélection de siège, le cas échéant"],
+    "notes": "Le tarif, la sélection de siège et les frais de modification sont admissibles"
+  },
+  "accommodations": {
+    "title": "Hébergement",
+    "description": "Hôtel/motel/location",
+    "requirements": ["Chambres standard dans un établissement enregistré et accessible au public"],
+    "documentation": ["Reçus détaillés", "Facture ventilée"],
+    "notes": "Pour séjour privé chez famille/amis/collègues : 30 $/nuit (fournir les détails écrits du lieu et des nuitées)"
+  },
+  "meals": {
+    "title": "Repas",
+    "description": "Frais de repas durant un déplacement professionnel",
+    "requirements": ["Reçus détaillés requis (les relevés de carte de crédit/débit seuls ne sont pas acceptés)", "Les taux de per diem peuvent être réclamés au lieu de reçus détaillés", "Le per diem doit être ajusté si des repas sont fournis lors de l'événement"],
+    "documentation": ["Reçu détaillé avec ventilation des frais, taxes et pourboires"],
+    "notes": "L'alcool n'est pas admissible au remboursement par les fonds de subvention. Remboursable uniquement à titre exceptionnel avec l'approbation du Directeur."
+  },
+  "alcohol": {
+    "title": "Alcool",
+    "description": "Frais d'alcool",
+    "requirements": ["Approbation du Directeur requise", "Sur base d'exception uniquement"],
+    "documentation": ["Document d'approbation du Directeur"],
+    "notes": "Non admissible avec les fonds de subvention. Remboursable selon la source de financement admissible, conformément à la politique d'accueil de McGill"
+  },
+  "exchange_rate": {
+    "title": "Conversion de devise étrangère",
+    "description": "Frais en devise étrangère",
+    "requirements": ["Documentation indiquant le montant payé en CAD requise", "Ou utilisation du taux de la Banque du Canada à la date d'achat"],
+    "documentation": ["Relevé bancaire/de carte de crédit indiquant le montant CAD", "OU preuve du taux de la Banque du Canada"],
+    "notes": "Pour les montants exacts, documentation indiquant l'équivalent en CAD requise. Sinon, les taux de la Banque du Canada à la date d'achat seront utilisés."
+  },
+  "advance_request": {
+    "title": "Estimations pour avance",
+    "description": "Lignes directrices pour estimer les montants d'avance de voyage",
+    "requirements": ["Utilisez les taux de per diem et les règles standard de transport/hébergement pour estimer les coûts"],
+    "documentation": ["La documentation justificative n'est pas requise au stade de l'avance, mais le sera au retour"],
+    "notes": "Tout solde d'avance non dépensé doit être remboursé. Si les dépenses réelles dépassent l'avance, un complément peut être demandé."
+  },
+  "receipts": {
+    "title": "Exigences relatives aux reçus",
+    "description": "Tous les reçus doivent respecter les exigences strictes de soumission numérique",
+    "requirements": ["Assurez-vous que le document complet est clairement lisible et sans bords coupés", "Doit être émis au nom du demandeur", "Inclure une ventilation détaillée des frais, taxes et pourboires", "Indiquer clairement le mode de paiement, la date du service et les coordonnées complètes du fournisseur"],
+    "documentation": ["Photo de haute qualité ou PDF original (préféré)"],
+    "notes": "Les relevés de carte de crédit/débit seuls ne sont pas acceptés. Conservez les copies physiques originales pendant 7 ans."
+  },
+  "eligibility": {
+    "title": "Dépenses admissibles",
+    "description": "Seules les dépenses admissibles seront remboursées",
+    "requirements": ["Les dépenses doivent concerner uniquement les chercheurs ou le personnel/étudiants admissibles", "Pas pour des raisons personnelles ou des contacts familiaux/personnels", "Coût direct de la recherche pour laquelle les fonds ont été octroyés", "Avantages directement attribuables à la subvention", "Efficace et économique", "Ne pas entraîner de gain personnel pour les membres de l'équipe de recherche"],
+    "documentation": ["Preuve d'admissibilité pour tous les demandeurs"],
+    "notes": "Les remboursements peuvent être ajustés selon l'agence subventionnaire et les politiques organisationnelles"
+  },
+  "validation": {
+    "RECEIPT_MISSING_ITEMIZATION": "Le reçu doit inclure une ventilation détaillée des frais, taxes et pourboires"
+  }
+}

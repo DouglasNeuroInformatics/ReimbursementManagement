@@ -382,7 +382,7 @@ Deno.test({ name: "Multi-signoff: third approval blocked when items not classifi
 
   assertEquals(response.status, 400);
   assertExists(response.body.error);
-  assert(response.body.error.includes("code secondaire"));
+  assertEquals(response.body.code, "APPROVAL_ITEMS_NOT_CLASSIFIED");
 });
 
 Deno.test({ name: "Multi-signoff: same admin cannot approve twice", sanitizeResources: false, sanitizeOps: false }, async () => {
@@ -410,7 +410,7 @@ Deno.test({ name: "Multi-signoff: same admin cannot approve twice", sanitizeReso
 
   assertEquals(response.status, 400);
   assertExists(response.body.error);
-  assert(response.body.error.includes("already"));
+  assertEquals(response.body.code, "APPROVAL_ALREADY_APPROVED");
 });
 
 Deno.test({ name: "Multi-signoff: finance reject works from FINANCE_REVIEWING", sanitizeResources: false, sanitizeOps: false }, async () => {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import { Button } from '../ui/Button'
 import { Textarea } from '../ui/Textarea'
@@ -17,6 +18,7 @@ interface SupervisorApprovalFormProps {
 export function SupervisorApprovalForm({ supervisorId, onApprove, onReject, approveLoading, rejectLoading }: SupervisorApprovalFormProps) {
   const [accountId, setAccountId] = useState('')
   const [comment, setComment] = useState('')
+  const { t } = useTranslation(['review'])
   const { data: accounts = [] } = useQuery({
     queryKey: ['accounts', supervisorId, 'mine'],
     queryFn: () =>
@@ -27,17 +29,17 @@ export function SupervisorApprovalForm({ supervisorId, onApprove, onReject, appr
   return (
     <div className="space-y-4">
       <Select
-        label="Charge to Account"
+        label={t('chargeAccount') as string}
         options={accounts.map((a) => ({ value: a.id, label: `${a.accountNumber} — ${a.label}` }))}
-        placeholder="Select account..."
+        placeholder={t('chargeAccountPlaceholder') as string}
         value={accountId}
         onChange={(e) => setAccountId(e.target.value)}
       />
       <Textarea
-        label="Comment (optional)"
+        label={t('commentOptional') as string}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Add a note for the requester..."
+        placeholder={t('commentNotePlaceholder') as string}
       />
       <div className="flex gap-3">
         <Button
@@ -45,14 +47,14 @@ export function SupervisorApprovalForm({ supervisorId, onApprove, onReject, appr
           disabled={!accountId}
           loading={approveLoading}
         >
-          Approve
+          {t('approve')}
         </Button>
         <Button
           variant="danger"
           onClick={() => onReject({ comment: comment || undefined })}
           loading={rejectLoading}
         >
-          Reject
+          {t('reject')}
         </Button>
       </div>
     </div>
@@ -87,19 +89,20 @@ export function FinanceApprovalForm({
   allClassified,
 }: FinanceFormProps) {
   const [comment, setComment] = useState('')
+  const { t } = useTranslation(['finance', 'review'])
   return (
     <div className="space-y-4">
       {approvalProgress && (
         <p className="text-sm text-gray-600">
-          Finance approvals: {approvalProgress.current} of {approvalProgress.required} received
+          {t('approvalProgress', { current: approvalProgress.current, required: approvalProgress.required })}
         </p>
       )}
       {alreadySigned && (
         <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-          You have already signed off on this request.
+          {t('alreadySigned')}
         </p>
       )}
-      <Textarea label="Comment (optional)" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a note..." />
+      <Textarea label={t('review:commentOptional') as string} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('commentPlaceholder') as string} />
       <div className="flex gap-3">
         {!showMarkPaid && (
           <>
@@ -108,17 +111,17 @@ export function FinanceApprovalForm({
               loading={approveLoading}
               disabled={approveDisabled}
             >
-              Approve
+              {t('approveFinance')}
             </Button>
-            <Button variant="danger" onClick={() => onReject({ comment: comment || undefined })} loading={rejectLoading}>Reject</Button>
+            <Button variant="danger" onClick={() => onReject({ comment: comment || undefined })} loading={rejectLoading}>{t('rejectFinance')}</Button>
           </>
         )}
         {showMarkPaid && onMarkPaid && (
-          <Button onClick={() => onMarkPaid({ comment: comment || undefined })} loading={paidLoading} variant="primary">Mark as Paid</Button>
+          <Button onClick={() => onMarkPaid({ comment: comment || undefined })} loading={paidLoading} variant="primary">{t('markPaid')}</Button>
         )}
       </div>
       {!showMarkPaid && !allClassified && approvalProgress && approvalProgress.current + 1 >= approvalProgress.required && (
-        <p className="text-xs text-amber-700">All items must have a code secondaire before the final approval can be given.</p>
+        <p className="text-xs text-amber-700">{t('classifyBeforeFinal')}</p>
       )}
     </div>
   )

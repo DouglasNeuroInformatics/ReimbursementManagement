@@ -1,0 +1,32 @@
+{
+  "save": "Save",
+  "saved": "Saved.",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "delete": "Delete",
+  "remove": "Remove",
+  "add": "Add",
+  "addRow": "Add Row",
+  "addRowPlus": "+ Add Row",
+  "submit": "Submit",
+  "saveDraft": "Save as Draft",
+  "saveAndSubmit": "Save & Submit",
+  "loading": "Loading...",
+  "saving": "Saving...",
+  "saveFailed": "Failed to save",
+  "saveGeneric": "Save failed",
+  "incompleteItemsError": "Each expense item with data or files must have a description, amount, and date.",
+  "optional": "(optional)",
+  "back": "Back",
+  "browse": "browse",
+  "upload": {
+    "dragDropOrBrowse": "Drag & drop files here, or",
+    "dropToUpload": "Drop files to upload",
+    "fileTypeHint": "PDF, images, Word, Excel — max {{maxMb}}MB each",
+    "exceedsMaxSize": "{{name}} exceeds {{maxMb}}MB limit",
+    "unsupportedFileTypes": "Unsupported file type: {{names}}\nAllowed: PDF, images, Word, Excel, CSV, plain text",
+    "uploaded": "Uploaded",
+    "pending": "Pending upload",
+    "download": "Download"
+  }
+}

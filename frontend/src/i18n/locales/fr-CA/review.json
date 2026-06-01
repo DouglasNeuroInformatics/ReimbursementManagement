@@ -1,0 +1,15 @@
+{
+  "queue": "File d'examen",
+  "history": "Historique des demandes",
+  "approve": "Approuver",
+  "reject": "Rejeter",
+  "chargeAccount": "Imputer au compte",
+  "chargeAccountPlaceholder": "Sélectionnez un compte...",
+  "commentNotePlaceholder": "Ajoutez une note pour le demandeur...",
+  "comment": "Commentaire",
+  "commentOptional": "Commentaire (facultatif)",
+  "noPendingRequests": "Aucune demande en attente d'examen.",
+  "noHistory": "Aucun historique de demande.",
+  "yourDecision": "Votre décision",
+  "notFound": "Introuvable."
+}

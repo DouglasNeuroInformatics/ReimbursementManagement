@@ -1,9 +1,13 @@
+import i18n from '../i18n'
 import type { User } from '../types'
+import type { ErrorCode, ValidationIssue } from './errorCodes'
 
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly code?: ErrorCode | string,
+    public readonly details?: Record<string, unknown> | { issues?: ValidationIssue[] },
   ) {
     super(message)
     this.name = 'ApiError'
@@ -39,16 +43,21 @@ async function _doRefresh(): Promise<boolean> {
   }
 }
 
-async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
+function _buildHeaders(url: string, init: RequestInit): Record<string, string> {
   const headers: Record<string, string> = {}
-
   if (!_matchesPath(url, NO_CSRF_PATHS)) {
     headers['X-Requested-With'] = 'XMLHttpRequest'
   }
-
   if (init.body && typeof init.body === 'string') {
     headers['Content-Type'] = 'application/json'
   }
+  // Tell the backend which locale to render fallback messages in.
+  headers['Accept-Language'] = i18n.language || 'fr-CA'
+  return headers
+}
+
+async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
+  const headers = _buildHeaders(url, init)
 
   const res = await fetch(url, {
     ...init,
@@ -75,14 +84,18 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
         }
       }
       window.location.href = '/login'
-      throw new ApiError(401, 'Session expired')
+      throw new ApiError(401, 'Session expired', 'AUTH_REFRESH_TOKEN_EXPIRED')
     }
     let message = res.statusText
+    let code: string | undefined
+    let details: Record<string, unknown> | undefined
     try {
-      const body = await res.json()
-      message = (body as { error?: string }).error ?? message
+      const body = await res.json() as { error?: string; code?: string; details?: Record<string, unknown> }
+      message = body.error ?? message
+      code = body.code
+      details = body.details
     } catch { /* ignore */ }
-    throw new ApiError(res.status, message)
+    throw new ApiError(res.status, message, code, details)
   }
 
   if (res.status === 204) return undefined as T

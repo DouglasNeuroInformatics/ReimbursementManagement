@@ -2,6 +2,7 @@ import { hash, verify } from "@node-rs/argon2";
 import { prisma } from "../lib/prisma.ts";
 import { signAccessToken } from "../lib/jwt.ts";
 import { AppError } from "../middleware/error.ts";
+import type { Locale } from "../lib/locales.ts";
 
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -12,7 +13,7 @@ export async function register(data: {
   lastName: string;
 }) {
   const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase().trim() } });
-  if (existing) throw new AppError(409, "Email already in use");
+  if (existing) throw new AppError(409, "AUTH_EMAIL_IN_USE");
 
   const passwordHash = await hash(data.password);
   return prisma.user.create({
@@ -28,6 +29,7 @@ export async function register(data: {
       firstName: true,
       lastName: true,
       role: true,
+      preferredLocale: true,
       createdAt: true,
     },
   });
@@ -36,10 +38,10 @@ export async function register(data: {
 export async function login(email: string, password: string) {
   const normalizedEmail = email.toLowerCase().trim();
   const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (!user) throw new AppError(401, "Invalid credentials");
+  if (!user) throw new AppError(401, "AUTH_INVALID_CREDENTIALS");
 
   const valid = await verify(user.passwordHash, password);
-  if (!valid) throw new AppError(401, "Invalid credentials");
+  if (!valid) throw new AppError(401, "AUTH_INVALID_CREDENTIALS");
 
   const accessToken = await signAccessToken({
     sub: user.id,
@@ -69,10 +71,10 @@ export async function refresh(refreshToken: string) {
       user: { select: { id: true, email: true, role: true } },
     },
   });
-  if (!session) throw new AppError(401, "Invalid refresh token");
+  if (!session) throw new AppError(401, "AUTH_REFRESH_TOKEN_INVALID");
   if (session.expiresAt < new Date()) {
     await prisma.session.delete({ where: { id: session.id } });
-    throw new AppError(401, "Refresh token expired");
+    throw new AppError(401, "AUTH_REFRESH_TOKEN_EXPIRED");
   }
   const accessToken = await signAccessToken({
     sub: session.user.id,
@@ -95,6 +97,7 @@ export async function getMe(userId: string) {
       firstName: true,
       lastName: true,
       role: true,
+      preferredLocale: true,
       supervisorId: true,
       supervisor: {
         select: { id: true, firstName: true, lastName: true, email: true },
@@ -106,7 +109,7 @@ export async function getMe(userId: string) {
       jobPosition: true,
     },
   });
-  if (!user) throw new AppError(404, "User not found");
+  if (!user) throw new AppError(404, "USER_NOT_FOUND");
   return user;
 }
 
@@ -115,6 +118,7 @@ export async function updateMe(userId: string, data: {
   phone?: string | null;
   extension?: string | null;
   jobPosition?: string | null;
+  preferredLocale?: Locale;
 }) {
   const user = await prisma.user.update({
     where: { id: userId },
@@ -125,6 +129,7 @@ export async function updateMe(userId: string, data: {
       firstName: true,
       lastName: true,
       role: true,
+      preferredLocale: true,
       supervisorId: true,
       supervisor: {
         select: { id: true, firstName: true, lastName: true, email: true },
@@ -136,6 +141,6 @@ export async function updateMe(userId: string, data: {
       createdAt: true,
     },
   });
-  if (!user) throw new AppError(404, "User not found");
+  if (!user) throw new AppError(404, "USER_NOT_FOUND");
   return user;
 }

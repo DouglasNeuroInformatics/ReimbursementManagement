@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import { useRequest, useUpdateRequest, useSubmitRequest } from '../../../../hooks/useRequests'
 import { useUploadDocument } from '../../../../hooks/useDocuments'
 import { useAuth } from '../../../../hooks/useAuth'
@@ -13,6 +14,7 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { DateInput } from '../../../../components/ui/DateInput'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { PageSpinner } from '../../../../components/ui/Spinner'
+import { translateApiError } from '../../../../lib/translateApiError'
 import type { Request } from '../../../../types'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/edit')({ component: EditRequestPage })
@@ -28,13 +30,14 @@ function EditRequestPage() {
   const { user } = useAuth()
   const { data, isLoading } = useRequest(requestId)
   const request = data?.request
+  const { t } = useTranslation('requests')
 
   if (isLoading) return <PageSpinner />
-  if (!request) return <div className="text-center py-12 text-gray-500">Request not found.</div>
+  if (!request) return <div className="text-center py-12 text-gray-500">{t('notFound')}</div>
 
   const isOwner = user?.id === request.userId
   if (!isOwner || !EDITABLE_STATUSES.includes(request.status)) {
-    return <div className="text-center py-12 text-gray-500">This request cannot be edited.</div>
+    return <div className="text-center py-12 text-gray-500">{t('cannotEdit')}</div>
   }
 
   if (request.type === 'REIMBURSEMENT') return <ReimbursementEdit request={request} />
@@ -62,11 +65,12 @@ function ActionButtons({
   isSaving: boolean
   isSubmitting: boolean
 }) {
+  const { t } = useTranslation('forms')
   return (
     <div className="flex gap-3">
-      <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-      <Button variant="secondary" onClick={onSave} disabled={isSaving} loading={isSaving && !isSubmitting}>Save</Button>
-      <Button onClick={onSaveAndSubmit} disabled={isSaving} loading={isSubmitting}>Save &amp; Submit</Button>
+      <Button variant="secondary" onClick={onCancel}>{t('cancel')}</Button>
+      <Button variant="secondary" onClick={onSave} disabled={isSaving} loading={isSaving && !isSubmitting}>{t('save')}</Button>
+      <Button onClick={onSaveAndSubmit} disabled={isSaving} loading={isSubmitting}>{t('saveAndSubmit')}</Button>
     </div>
   )
 }
@@ -88,6 +92,7 @@ function ReimbursementEdit({ request }: { request: Request }) {
   const uploadDoc = useUploadDocument()
   const [error, setError] = useState('')
   const [andSubmit, setAndSubmit] = useState(false)
+  const { t } = useTranslation(['requests', 'forms'])
 
   const initialItems: ReimbursementRow[] =
     request.reimbursement && request.reimbursement.items.length > 0
@@ -112,7 +117,7 @@ function ReimbursementEdit({ request }: { request: Request }) {
         const hasData = (it: ReimbursementRow) => it.description.trim() || it.amount || it.date || it.files.length > 0
         const isComplete = (it: ReimbursementRow) => it.description.trim() && it.amount && it.date
         if (value.items.some((it) => hasData(it) && !isComplete(it))) {
-          setError('Each expense item with data or files must have a description, amount, and date.')
+          setError(t('forms:incompleteItemsError') as string)
           return
         }
         const validItems = value.items.filter(isComplete)
@@ -147,7 +152,7 @@ function ReimbursementEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to save')
+        setError(translateApiError(err) || (t('forms:saveFailed') as string))
       }
     },
   })
@@ -156,27 +161,27 @@ function ReimbursementEdit({ request }: { request: Request }) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Edit General Reimbursement</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('editGeneral')}</h1>
       <ErrorBanner message={error} />
 
       <Card>
-        <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
             {(field) => (
-              <Input label="Title" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+              <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
             )}
           </form.Field>
           <form.Field name="description">
             {(field) => (
-              <Textarea label="Description (optional)" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />
+              <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />
             )}
           </form.Field>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Expense Items</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('expenseItems')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="items" mode="array">
             {(itemsField) => (
@@ -184,31 +189,31 @@ function ReimbursementEdit({ request }: { request: Request }) {
                 {itemsField.state.value.map((_, index) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">{t('item', { n: index + 1 })}</span>
                       {itemsField.state.value.length > 1 && (
-                        <Button variant="ghost" size="sm" type="button" onClick={() => itemsField.removeValue(index)}>Remove</Button>
+                        <Button variant="ghost" size="sm" type="button" onClick={() => itemsField.removeValue(index)}>{t('forms:remove')}</Button>
                       )}
                     </div>
                     <form.Field name={`items[${index}].description`}>
                       {(field) => (
-                        <Input label="Description" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                        <Input label={t('fields.description') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
                       )}
                     </form.Field>
                     <div className="grid grid-cols-2 gap-4">
                       <form.Field name={`items[${index}].amount`}>
                         {(field) => (
-                          <Input label="Amount" type="number" step="0.01" min="0" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                          <Input label={t('fields.amount') as string} type="number" step="0.01" min="0" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
                         )}
                       </form.Field>
                       <form.Field name={`items[${index}].date`}>
                         {(field) => (
-                          <DateInput label="Date" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                          <DateInput label={t('fields.date') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
                         )}
                       </form.Field>
                     </div>
                     <form.Field name={`items[${index}].vendor`}>
                       {(field) => (
-                        <Input label="Vendor (optional)" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />
+                        <Input label={`${t('fields.vendor')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />
                       )}
                     </form.Field>
                     <form.Field name={`items[${index}].files`}>
@@ -228,7 +233,7 @@ function ReimbursementEdit({ request }: { request: Request }) {
                   type="button"
                   onClick={() => itemsField.pushValue({ description: '', amount: '', date: '', vendor: '', files: [] })}
                 >
-                  + Add Row
+                  {t('forms:addRowPlus')}
                 </Button>
               </>
             )}
@@ -263,6 +268,7 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
   const [error, setError] = useState('')
   const [andSubmit, setAndSubmit] = useState(false)
   const [requestFiles, setRequestFiles] = useState<File[]>([])
+  const { t } = useTranslation(['requests', 'forms'])
 
   const ta = request.travelAdvance
   const initialItems: TravelAdvanceRow[] =
@@ -311,7 +317,7 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to save')
+        setError(translateApiError(err) || (t('forms:saveFailed') as string))
       }
     },
   })
@@ -321,36 +327,36 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Edit Travel Advance</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('editTravelAdvance')}</h1>
       <ErrorBanner message={error} />
 
       <Card>
-        <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
-            {(field) => <Input label="Title" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <form.Field name="description">
-            {(field) => <Textarea label="Description (optional)" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+            {(field) => <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
           </form.Field>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Trip Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('tripDetails')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="destination">
-            {(field) => <Input label="Destination" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <form.Field name="purpose">
-            {(field) => <Input label="Purpose" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="departureDate">
-              {(field) => <DateInput label="Departure Date" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+              {(field) => <DateInput label={t('fields.departureDate') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
             </form.Field>
             <form.Field name="returnDate">
-              {(field) => <DateInput label="Return Date" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+              {(field) => <DateInput label={t('fields.returnDate') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
             </form.Field>
           </div>
         </CardBody>
@@ -361,8 +367,8 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
           <form.Field name="items" mode="array">
             {(itemsField) => (
               <div className="flex items-center justify-between">
-                <span className="font-semibold">Estimated Expenses</span>
-                <Button size="sm" variant="secondary" type="button" onClick={() => itemsField.pushValue({ category: '', amount: '', notes: '' })}>Add Row</Button>
+                <span className="font-semibold">{t('estimatedExpenses')}</span>
+                <Button size="sm" variant="secondary" type="button" onClick={() => itemsField.pushValue({ category: '', amount: '', notes: '' })}>{t('forms:addRow')}</Button>
               </div>
             )}
           </form.Field>
@@ -374,14 +380,14 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
                 {itemsField.state.value.map((_, i) => (
                   <div key={i} className="grid grid-cols-3 gap-2 items-start">
                     <form.Field name={`items[${i}].category`}>
-                      {(field) => <Input placeholder="Category" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                     </form.Field>
                     <form.Field name={`items[${i}].amount`}>
-                      {(field) => <Input placeholder="Amount" type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                     </form.Field>
                     <div className="flex gap-1">
                       <form.Field name={`items[${i}].notes`}>
-                        {(field) => <Input placeholder="Notes" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                        {(field) => <Input placeholder={t('fields.notes') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                       </form.Field>
                       {itemsField.state.value.length > 1 && (
                         <button type="button" onClick={() => itemsField.removeValue(i)} className="text-red-400 hover:text-red-600 px-1">{'✕'}</button>
@@ -396,7 +402,7 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Supporting Documents</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('supportingDocuments')}</span></CardHeader>
         <CardBody>
           <DocumentUpload files={requestFiles} onChange={setRequestFiles} requestId={request.id} existingDocs={existingUnlinkedDocs} />
         </CardBody>
@@ -431,6 +437,7 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
   const [error, setError] = useState('')
   const [andSubmit, setAndSubmit] = useState(false)
   const [requestFiles, setRequestFiles] = useState<File[]>([])
+  const { t } = useTranslation(['requests', 'forms'])
 
   const tr = request.travelReimbursement
   const initialItems: TravelExpenseRow[] =
@@ -487,7 +494,7 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to save')
+        setError(translateApiError(err) || (t('forms:saveFailed') as string))
       }
     },
   })
@@ -497,36 +504,36 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Edit Travel Reimbursement</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('editTravelReimbursement')}</h1>
       <ErrorBanner message={error} />
 
       <Card>
-        <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
-            {(field) => <Input label="Title" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <form.Field name="description">
-            {(field) => <Textarea label="Description (optional)" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+            {(field) => <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
           </form.Field>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Trip Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('tripDetails')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="destination">
-            {(field) => <Input label="Destination" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <form.Field name="purpose">
-            {(field) => <Input label="Purpose" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
           </form.Field>
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="departureDate">
-              {(field) => <DateInput label="Departure Date" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+              {(field) => <DateInput label={t('fields.departureDate') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
             </form.Field>
             <form.Field name="returnDate">
-              {(field) => <DateInput label="Return Date" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+              {(field) => <DateInput label={t('fields.returnDate') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
             </form.Field>
           </div>
         </CardBody>
@@ -537,8 +544,8 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
           <form.Field name="items" mode="array">
             {(itemsField) => (
               <div className="flex items-center justify-between">
-                <span className="font-semibold">Actual Expenses</span>
-                <Button size="sm" variant="secondary" type="button" onClick={() => itemsField.pushValue({ date: '', category: '', amount: '', vendor: '', notes: '' })}>Add Row</Button>
+                <span className="font-semibold">{t('actualExpenses')}</span>
+                <Button size="sm" variant="secondary" type="button" onClick={() => itemsField.pushValue({ date: '', category: '', amount: '', vendor: '', notes: '' })}>{t('forms:addRow')}</Button>
               </div>
             )}
           </form.Field>
@@ -553,14 +560,14 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
                       {(field) => <DateInput placeholder="YYYY-MM-DD" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                     </form.Field>
                     <form.Field name={`items[${i}].category`}>
-                      {(field) => <Input placeholder="Category" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                     </form.Field>
                     <form.Field name={`items[${i}].amount`}>
-                      {(field) => <Input placeholder="Amount" type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                     </form.Field>
                     <div className="flex gap-1">
                       <form.Field name={`items[${i}].vendor`}>
-                        {(field) => <Input placeholder="Vendor" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                        {(field) => <Input placeholder={t('fields.vendor') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
                       </form.Field>
                       {itemsField.state.value.length > 1 && (
                         <button type="button" onClick={() => itemsField.removeValue(i)} className="text-red-400 hover:text-red-600 px-1">{'✕'}</button>
@@ -575,7 +582,7 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Supporting Documents</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('supportingDocuments')}</span></CardHeader>
         <CardBody>
           <DocumentUpload files={requestFiles} onChange={setRequestFiles} requestId={request.id} existingDocs={existingUnlinkedDocs} />
         </CardBody>

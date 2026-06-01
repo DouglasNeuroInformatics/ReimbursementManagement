@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useRequests } from '../../../hooks/useRequests'
 import { useAuth } from '../../../hooks/useAuth'
 import { StatusBadge } from '../../../components/ui/Badge'
@@ -14,6 +15,7 @@ function DashboardPage() {
   const { user } = useAuth()
   const { data: requests = [], isLoading } = useRequests({ scope: 'own' })
   const navigate = useNavigate()
+  const { t } = useTranslation(['requests', 'enums'])
 
   const counts = requests.reduce<Record<string, number>>((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1
@@ -25,8 +27,8 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Welcome back, {user?.firstName}</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('dashboardTitle')}</h1>
+        <p className="text-gray-500 text-sm mt-1">{t('welcome', { name: user?.firstName ?? '' })}</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -43,22 +45,22 @@ function DashboardPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Recent Requests</h2>
-            <Link to="/dashboard/requests/new" className="text-sm text-blue-600 hover:underline">New request</Link>
+            <h2 className="font-semibold text-gray-900">{t('recent')}</h2>
+            <Link to="/dashboard/requests/new" className="text-sm text-blue-600 hover:underline">{t('new')}</Link>
           </div>
         </CardHeader>
         <CardBody className="p-0">
           {requests.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-8">No requests yet.</p>
+            <p className="text-gray-500 text-sm text-center py-8">{t('none')}</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Title</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Type</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-right px-6 py-3 font-medium text-gray-500">Amount</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Date</th>
+                  <th className="text-left px-6 py-3 font-medium text-gray-500">{t('columns.title')}</th>
+                  <th className="text-left px-6 py-3 font-medium text-gray-500">{t('columns.type')}</th>
+                  <th className="text-left px-6 py-3 font-medium text-gray-500">{t('columns.status')}</th>
+                  <th className="text-right px-6 py-3 font-medium text-gray-500">{t('columns.amount')}</th>
+                  <th className="text-left px-6 py-3 font-medium text-gray-500">{t('columns.date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -74,9 +76,9 @@ function DashboardPage() {
                     <td className="px-6 py-3">
                       <Link to="/dashboard/requests/$requestId" params={{ requestId: r.id }} className="text-blue-600 hover:underline font-medium">{r.title}</Link>
                     </td>
-                    <td className="px-6 py-3 text-gray-600">{r.type.replace('_', ' ')}</td>
+                    <td className="px-6 py-3 text-gray-600">{t(`requestType.${r.type}`, { ns: 'enums' }) as string}</td>
                     <td className="px-6 py-3"><StatusBadge status={r.status} /></td>
-                    <td className="px-6 py-3 text-right font-medium text-gray-900">{(() => { const t = getRequestTotal(r); return t !== null ? fmtCurrency(t) : '—' })()}</td>
+                    <td className="px-6 py-3 text-right font-medium text-gray-900">{(() => { const tot = getRequestTotal(r); return tot !== null ? fmtCurrency(tot) : '—' })()}</td>
                     <td className="px-6 py-3 text-gray-500">{fmtDate(r.createdAt)}</td>
                   </tr>
                 ))}

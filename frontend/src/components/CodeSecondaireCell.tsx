@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { clsx } from 'clsx'
+import { useTranslation } from 'react-i18next'
 import { useCodeSecondaire, useClassifyItem } from '../hooks/useRequests'
 import type { ClassificationItemType } from './RequestItemsView'
 
@@ -16,6 +17,7 @@ export function CodeSecondaireCell({ itemId, itemType, currentCode, requestId }:
   const [value, setValue] = useState(currentCode ?? '')
   const [showSuccess, setShowSuccess] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const { t } = useTranslation(['finance', 'forms'])
 
   useEffect(() => {
     setValue(currentCode ?? '')
@@ -63,13 +65,13 @@ export function CodeSecondaireCell({ itemId, itemType, currentCode, requestId }:
         >
           {classify.isPending ? (
             <span className="inline-block h-3 w-3 border-2 border-current border-t-transparent border-r-transparent rounded-full animate-spin" />
-          ) : 'Save'}
+          ) : t('forms:save')}
         </button>
         <span className={clsx('text-xs transition-opacity duration-200', showSuccess ? 'text-green-600 opacity-100' : 'opacity-0')}>
-          Saved
+          {t('saved')}
         </span>
         <span className={clsx('text-xs', classify.isError ? 'text-red-600' : 'opacity-0')}>
-          Error
+          {t('errorIndicator')}
         </span>
       </span>
     </div>

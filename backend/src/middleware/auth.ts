@@ -8,12 +8,12 @@ import type { Role } from "../generated/prisma/client.ts";
 
 export const authenticate: MiddlewareHandler<HonoEnv> = async (c, next) => {
   const token = getCookie(c, "access_token");
-  if (!token) throw new AppError(401, "Authentication required");
+  if (!token) throw new AppError(401, "AUTH_REQUIRED");
   try {
     const payload = await verifyAccessToken(token);
     c.set("user", { id: payload.sub, role: payload.role as Role, email: payload.email });
   } catch {
-    throw new AppError(401, "Invalid or expired token");
+    throw new AppError(401, "AUTH_INVALID_TOKEN");
   }
   await next();
 };
@@ -23,7 +23,7 @@ export const csrfProtect: MiddlewareHandler = async (c, next) => {
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
     const xrw = c.req.header("X-Requested-With");
     if (xrw !== "XMLHttpRequest") {
-      throw new AppError(403, "CSRF check failed: missing X-Requested-With header");
+      throw new AppError(403, "AUTH_CSRF_FAILED");
     }
   }
   await next();
@@ -32,9 +32,9 @@ export const csrfProtect: MiddlewareHandler = async (c, next) => {
 export function requireRole(...roles: AuthUser["role"][]): MiddlewareHandler<HonoEnv> {
   return async (c, next) => {
     const user = c.get("user");
-    if (!user) throw new AppError(401, "Authentication required");
+    if (!user) throw new AppError(401, "AUTH_REQUIRED");
     if (!roles.includes(user.role)) {
-      throw new AppError(403, `Access denied. Required role(s): ${roles.join(", ")}`);
+      throw new AppError(403, "AUTH_FORBIDDEN_ROLE", { roles: roles.join(", ") });
     }
     await next();
   };
@@ -74,7 +74,7 @@ export const rateLimitAuth: MiddlewareHandler = async (c, next) => {
     // to set X-Real-IP, so a missing header means the request bypassed it.
     // In dev/test we let it through so direct API calls still work.
     if (getEnv().NODE_ENV === "production") {
-      throw new AppError(429, "Too many requests — please wait a minute and try again");
+      throw new AppError(429, "AUTH_RATE_LIMITED");
     }
     await next();
     return;
@@ -87,7 +87,7 @@ export const rateLimitAuth: MiddlewareHandler = async (c, next) => {
   } else {
     record.count++;
     if (record.count > RATE_LIMIT_MAX) {
-      throw new AppError(429, "Too many requests — please wait a minute and try again");
+      throw new AppError(429, "AUTH_RATE_LIMITED");
     }
   }
   await next();

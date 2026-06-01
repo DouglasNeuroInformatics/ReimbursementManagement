@@ -1,0 +1,32 @@
+{
+  "save": "Enregistrer",
+  "saved": "Enregistré.",
+  "cancel": "Annuler",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "remove": "Retirer",
+  "add": "Ajouter",
+  "addRow": "Ajouter une ligne",
+  "addRowPlus": "+ Ajouter une ligne",
+  "submit": "Soumettre",
+  "saveDraft": "Enregistrer le brouillon",
+  "saveAndSubmit": "Enregistrer et soumettre",
+  "loading": "Chargement...",
+  "saving": "Enregistrement...",
+  "saveFailed": "Échec de l'enregistrement",
+  "saveGeneric": "Échec",
+  "incompleteItemsError": "Chaque ligne avec des données ou des fichiers doit avoir une description, un montant et une date.",
+  "optional": "(facultatif)",
+  "back": "Retour",
+  "browse": "parcourir",
+  "upload": {
+    "dragDropOrBrowse": "Glissez-déposez vos fichiers ici, ou",
+    "dropToUpload": "Déposez les fichiers pour les téléverser",
+    "fileTypeHint": "PDF, images, Word, Excel — max {{maxMb}} Mo chacun",
+    "exceedsMaxSize": "{{name}} dépasse la limite de {{maxMb}} Mo",
+    "unsupportedFileTypes": "Type de fichier non pris en charge : {{names}}\nAutorisés : PDF, images, Word, Excel, CSV, texte simple",
+    "uploaded": "Téléversés",
+    "pending": "En attente de téléversement",
+    "download": "Télécharger"
+  }
+}

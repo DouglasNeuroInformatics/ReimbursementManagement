@@ -1,0 +1,32 @@
+{
+  "status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "SUPERVISOR_APPROVED": "Supervisor Approved",
+    "SUPERVISOR_REJECTED": "Supervisor Rejected",
+    "FINANCE_REVIEWING": "Finance Reviewing",
+    "FINANCE_APPROVED": "Finance Approved",
+    "FINANCE_REJECTED": "Finance Rejected",
+    "PAID": "Paid"
+  },
+  "role": {
+    "USER": "User",
+    "SUPERVISOR": "Supervisor",
+    "FINANCIAL_ADMIN": "Financial Admin"
+  },
+  "requestType": {
+    "REIMBURSEMENT": "Reimbursement",
+    "TRAVEL_ADVANCE": "Travel Advance",
+    "TRAVEL_REIMBURSEMENT": "Travel Reimbursement"
+  },
+  "stage": {
+    "SUPERVISOR": "Supervisor",
+    "FINANCE": "Finance"
+  },
+  "approvalAction": {
+    "APPROVE": "Approved",
+    "REJECT": "Rejected",
+    "REQUEST_CHANGES": "Changes requested",
+    "PAID": "Paid"
+  }
+}

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCreateRequest, useUpdateRequest, useSubmitRequest } from '../../../../hooks/useRequests'
 import { useUploadDocument } from '../../../../hooks/useDocuments'
 import { dateInputToISO } from '../../../../utils/dates'
@@ -10,6 +11,7 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { DateInput } from '../../../../components/ui/DateInput'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { PolicyDisplay } from '../../../../components/forms/PolicyDisplay'
+import { translateApiError } from '../../../../lib/translateApiError'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/new/reimbursement')({ component: NewReimbursementPage })
 
@@ -33,6 +35,7 @@ function NewReimbursementPage() {
   const [createdId, setCreatedId] = useState<string | null>(null)
   const updateReq = useUpdateRequest()
   const uploadDoc = useUploadDocument()
+  const { t } = useTranslation(['requests', 'forms'])
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -56,14 +59,13 @@ function NewReimbursementPage() {
   const handleSave = async (andSubmit = false) => {
     setError('')
     try {
-      // Validate: any item with data or files must have all required fields
       const hasData = (item: ItemRow) =>
         item.description.trim() || item.amount || item.date || item.files.length > 0
       const isComplete = (item: ItemRow) =>
         item.description.trim() && item.amount && item.date
       const incomplete = items.filter((item) => hasData(item) && !isComplete(item))
       if (incomplete.length > 0) {
-        setError('Each expense item with data or files must have a description, amount, and date.')
+        setError(t('forms:incompleteItemsError') as string)
         return
       }
 
@@ -110,7 +112,7 @@ function NewReimbursementPage() {
       if (andSubmit) await submitReq.mutateAsync(id)
       navigate({ to: '/dashboard/requests/$requestId', params: { requestId: id } })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(translateApiError(err) || (t('forms:saveFailed') as string))
     }
   }
 
@@ -118,26 +120,26 @@ function NewReimbursementPage() {
 
   return (
     <div className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">General Reimbursement</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('newGeneral')}</h1>
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
       <PolicyDisplay policyIds={['eligibility', 'receipts', 'equipment']} />
       <Card>
-        <CardHeader><span className="font-semibold">Request Details</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
-          <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-          <Textarea label="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Input label={t('fields.title') as string} value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={description} onChange={(e) => setDescription(e.target.value)} />
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader><span className="font-semibold">Expense Items</span></CardHeader>
+        <CardHeader><span className="font-semibold">{t('expenseItems')}</span></CardHeader>
         <CardBody className="space-y-4">
           {items.map((item, index) => (
             <div key={item._key} className="p-4 border border-gray-200 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                <span className="text-sm font-medium text-gray-700">{t('item', { n: index + 1 })}</span>
                 {items.length > 1 && (
                   <Button
                     variant="ghost"
@@ -145,19 +147,19 @@ function NewReimbursementPage() {
                     type="button"
                     onClick={() => removeRow(index)}
                   >
-                    Remove
+                    {t('forms:remove')}
                   </Button>
                 )}
               </div>
               <Input
-                label="Description"
+                label={t('fields.description') as string}
                 value={item.description}
                 onChange={(e) => setItem(index, 'description', e.target.value)}
                 required
               />
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Amount"
+                  label={t('fields.amount') as string}
                   type="number"
                   step="0.01"
                   min="0"
@@ -166,14 +168,14 @@ function NewReimbursementPage() {
                   required
                 />
                 <DateInput
-                  label="Date"
+                  label={t('fields.date') as string}
                   value={item.date}
                   onChange={(e) => setItem(index, 'date', e.target.value)}
                   required
                 />
               </div>
               <Input
-                label="Vendor (optional)"
+                label={`${t('fields.vendor')} ${t('forms:optional')}`}
                 value={item.vendor}
                 onChange={(e) => setItem(index, 'vendor', e.target.value)}
               />
@@ -181,7 +183,7 @@ function NewReimbursementPage() {
             </div>
           ))}
           <Button variant="secondary" type="button" onClick={addRow}>
-            + Add Row
+            {t('forms:addRowPlus')}
           </Button>
         </CardBody>
       </Card>
@@ -193,14 +195,14 @@ function NewReimbursementPage() {
           disabled={isLoading}
           loading={isLoading && !submitReq.isPending}
         >
-          Save as Draft
+          {t('forms:saveDraft')}
         </Button>
         <Button
           onClick={() => handleSave(true)}
           disabled={isLoading}
           loading={submitReq.isPending}
         >
-          Save &amp; Submit
+          {t('forms:saveAndSubmit')}
         </Button>
       </div>
     </div>
