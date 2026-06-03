@@ -984,6 +984,79 @@ async function seed() {
     `Created FINANCE_REVIEWING (2/3) request: ${financeReviewing2of3.title} ($1,320.00)`,
   );
 
+  // 13. USER - FINANCE_APPROVED General Reimbursement (awaiting payment; print-report demo)
+  const userFinanceApproved = await prisma.request.create({
+    data: {
+      userId: user.id,
+      type: "REIMBURSEMENT",
+      title: "Conference Registration & Supplies - Q1",
+      description:
+        "Registration and printed materials for the Q1 professional development conference",
+      status: "FINANCE_APPROVED",
+      submittedAt: new Date("2026-03-08"),
+      reimbursement: {
+        create: {
+          items: {
+            create: [
+              {
+                description: "Conference registration",
+                amount: 575.00,
+                date: new Date("2026-03-05"),
+                vendor: "PD Conference Inc.",
+                codeSecondaire: "65030",
+                sortOrder: 0,
+              },
+              {
+                description: "Printed handouts and binders",
+                amount: 84.25,
+                date: new Date("2026-03-06"),
+                vendor: "Staples",
+                codeSecondaire: "64040",
+                sortOrder: 1,
+              },
+            ],
+          },
+        },
+      },
+      approvals: {
+        create: [
+          {
+            actorId: supervisor.id,
+            action: "APPROVE",
+            stage: "SUPERVISOR",
+            accountId: supervisorAccount1.id,
+            comment: "Approved. Relevant to team's Q1 development goals.",
+            createdAt: new Date("2026-03-09"),
+          },
+          {
+            actorId: admin.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Approved for payment. Reference: PAY-2026-0312",
+            createdAt: new Date("2026-03-10"),
+          },
+          {
+            actorId: admin2.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Second approval.",
+            createdAt: new Date("2026-03-10"),
+          },
+          {
+            actorId: admin3.id,
+            action: "APPROVE",
+            stage: "FINANCE",
+            comment: "Third approval.",
+            createdAt: new Date("2026-03-11"),
+          },
+        ],
+      },
+    },
+  });
+  console.log(
+    `Created FINANCE_APPROVED request: ${userFinanceApproved.title} ($659.25)`,
+  );
+
   console.log("\n--- Dev seed complete ---");
   if (Deno.env.get("DEMO_MODE") === "true") {
     console.log(`  admin@test.com       / ${PASSWORD}  (FINANCIAL_ADMIN)`);
