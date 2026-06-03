@@ -170,6 +170,8 @@ The `LocaleSwitcher` component iterates `SUPPORTED_LOCALES`, so the UI auto-exte
 - `supervisor@test.com` / `Test1234!` - SUPERVISOR (reports to admin)
 - `user@test.com` / `Test1234!` - USER (reports to supervisor)
 
+When `DEMO_MODE=true`, the login page (`frontend/src/routes/login.tsx`) renders a quick-login box listing these accounts; each button calls `form.setFieldValue` + `form.handleSubmit` to fill and sign in. Visibility is gated on the existing `useConfig()` (`GET /api/config`) `demoMode` flag — the account list is a frontend constant, so no backend/API change was needed.
+
 ### Port Mapping
 - 8080: Caddy gateway (frontend SPA + API proxy) — externally accessible
 - 8000: Hono API (internal)

@@ -228,6 +228,8 @@ All demo accounts use the same password: `Test1234!`
 - **Supervisor**: `supervisor@test.com`
 - **Regular User**: `user@test.com`
 
+When demo mode is on, the login page shows a **Demo accounts** box listing all five accounts; clicking an account's **Sign in** button fills the form with its credentials and logs in immediately. The box is hidden when `DEMO_MODE=false`.
+
 ### Security Notice
 
 ⚠️ **DEMO MODE IS FOR DEMONSTRATION ONLY**
