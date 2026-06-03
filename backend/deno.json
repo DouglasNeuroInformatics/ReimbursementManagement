@@ -7,6 +7,7 @@
     "db:migrate": "deno run -A npm:prisma@^7 migrate dev",
     "db:migrate:deploy": "deno run -A npm:prisma@^7 migrate deploy",
     "db:push": "deno run -A npm:prisma@^7 db push",
+    "db:seed": "deno run -A prisma/seed.ts",
     "test": "deno test -A --env-file=.env.test"
   },
   "imports": {

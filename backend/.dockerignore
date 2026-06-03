@@ -1,2 +1,5 @@
 src/generated/
 node_modules/
+# Demo seed is not baked into the image; it is bind-mounted at runtime
+# (dev: ./backend volume, prod migrate: ./backend/prisma/seed.ts mount).
+prisma/seed.ts

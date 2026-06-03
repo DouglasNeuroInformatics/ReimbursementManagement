@@ -40,9 +40,9 @@ services:
       - -c
       - >-
         deno install --allow-scripts &&
-        deno run -A npm:prisma@^7 generate &&
-        deno run -A npm:prisma@^7 migrate deploy &&
-        (deno run -A prisma/seed.ts || echo 'Seed failed — continuing')
+        deno task db:generate &&
+        deno task db:migrate:deploy &&
+        (deno task db:seed || echo 'Seed failed — continuing')
     environment:
       DATABASE_URL: postgresql://app:${DB_PASSWORD:-devpassword}@db:5432/reimbursement
     volumes:
