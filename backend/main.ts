@@ -29,11 +29,18 @@ api.route("/auth", authRoutes);
 // Supervisor accounts (no CSRF - only FINANCIAL_ADMIN can access, role check in route)
 api.route("/supervisors", accountRoutes);
 
+// Public runtime config for the SPA (no auth/CSRF) — non-sensitive flags only.
+api.get("/config", (c) => c.json({ demoMode: env.DEMO_MODE === "true" }));
+
 // Protected routes (require CSRF)
 api.use("*", async (c, next) => {
   const path = c.req.path;
-  // Allow auth and supervisors paths without CSRF
-  if (path.startsWith("/api/auth") || path.startsWith("/api/supervisors")) {
+  // Allow public paths (auth, supervisors, runtime config) without CSRF
+  if (
+    path.startsWith("/api/auth") ||
+    path.startsWith("/api/supervisors") ||
+    path === "/api/config"
+  ) {
     return next();
   }
   // Apply CSRF check for all other paths

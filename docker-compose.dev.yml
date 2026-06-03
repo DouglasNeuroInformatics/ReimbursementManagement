@@ -67,6 +67,8 @@ services:
       S3_SECRET_KEY: ${RUSTFS_SECRET_KEY:-devsecretsecret16chars}
       S3_BUCKET: documents
       PORT: "8000"
+      # Dev always seeds demo data, so default the demo banner/log on.
+      DEMO_MODE: ${DEMO_MODE:-true}
     volumes:
       - ./backend:/app
       - backend_nm_dev:/app/node_modules

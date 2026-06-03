@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 import { ErrorBoundary } from '../components/ErrorBoundary'
+import { DemoBanner } from '../components/DemoBanner'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -19,6 +20,7 @@ function NotFound() {
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <ErrorBoundary>
+      <DemoBanner />
       <Outlet />
     </ErrorBoundary>
   ),

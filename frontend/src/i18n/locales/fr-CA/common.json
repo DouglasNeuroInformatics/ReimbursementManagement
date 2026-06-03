@@ -2,6 +2,10 @@
   "appName": "Système de gestion des remboursements",
   "appTitleShort": "Remboursements",
   "signOut": "Déconnexion",
+  "demoBanner": {
+    "message": "Mode démo — données fictives seulement. N'entrez pas de renseignements réels.",
+    "credentials": "admin@test.com / Test1234!"
+  },
   "nav": {
     "dashboard": "Tableau de bord",
     "myRequests": "Mes demandes",

@@ -2,6 +2,10 @@
   "appName": "Reimbursement Management System",
   "appTitleShort": "Reimbursements",
   "signOut": "Sign out",
+  "demoBanner": {
+    "message": "Demo mode — sample data only. Do not enter real information.",
+    "credentials": "admin@test.com / Test1234!"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "myRequests": "My Requests",
