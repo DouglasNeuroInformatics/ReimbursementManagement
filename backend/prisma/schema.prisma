@@ -48,10 +48,12 @@ model User {
   passwordHash String
   firstName    String
   lastName     String
-  jobPosition  String?
-  phone        String?
-  extension    String?
-  address      String?
+  jobPosition     String?
+  phone           String?
+  extension       String?
+  address         String?
+  employeeNumber  String?
+  department      String?
   role             Role     @default(USER)
   preferredLocale  String   @default("fr-CA")
   supervisorId String?
@@ -72,6 +74,8 @@ model SupervisorAccount {
   supervisor    User     @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
   accountNumber String
   label         String
+  fund          String?
+  primaryCode   String?
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

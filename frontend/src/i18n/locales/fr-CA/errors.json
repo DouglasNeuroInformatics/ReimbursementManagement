@@ -50,6 +50,7 @@
   "DOCUMENT_FILE_TOO_LARGE": "Le fichier dépasse la taille maximale de {{maxMb}} Mo",
   "DOCUMENT_TYPE_NOT_ALLOWED": "Le type de fichier « {{fileType}} » n'est pas autorisé",
   "DOCUMENT_ITEM_MISMATCH": "L'élément n'appartient pas à cette demande",
+  "REPORT_WRONG_STATUS": "Le rapport n'est disponible que pour les demandes approuvées ou payées",
   "validation": {
     "VALIDATION_REQUIRED": "Requis",
     "VALIDATION_TYPE": "Valeur invalide",

@@ -32,6 +32,7 @@ import { Route as AuthDashboardRequestsRequestIdIndexRouteImport } from './route
 import { Route as AuthDashboardRequestsNewTravelReimbursementRouteImport } from './routes/_auth/dashboard/requests/new.travel-reimbursement'
 import { Route as AuthDashboardRequestsNewTravelAdvanceRouteImport } from './routes/_auth/dashboard/requests/new.travel-advance'
 import { Route as AuthDashboardRequestsNewReimbursementRouteImport } from './routes/_auth/dashboard/requests/new.reimbursement'
+import { Route as AuthDashboardRequestsRequestIdReportRouteImport } from './routes/_auth/dashboard/requests/$requestId.report'
 import { Route as AuthDashboardRequestsRequestIdEditRouteImport } from './routes/_auth/dashboard/requests/$requestId.edit'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -156,6 +157,12 @@ const AuthDashboardRequestsNewReimbursementRoute =
     path: '/reimbursement',
     getParentRoute: () => AuthDashboardRequestsNewRoute,
   } as any)
+const AuthDashboardRequestsRequestIdReportRoute =
+  AuthDashboardRequestsRequestIdReportRouteImport.update({
+    id: '/report',
+    path: '/report',
+    getParentRoute: () => AuthDashboardRequestsRequestIdRoute,
+  } as any)
 const AuthDashboardRequestsRequestIdEditRoute =
   AuthDashboardRequestsRequestIdEditRouteImport.update({
     id: '/edit',
@@ -182,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/requests/new': typeof AuthDashboardRequestsNewRouteWithChildren
   '/dashboard/requests/': typeof AuthDashboardRequestsIndexRoute
   '/dashboard/requests/$requestId/edit': typeof AuthDashboardRequestsRequestIdEditRoute
+  '/dashboard/requests/$requestId/report': typeof AuthDashboardRequestsRequestIdReportRoute
   '/dashboard/requests/new/reimbursement': typeof AuthDashboardRequestsNewReimbursementRoute
   '/dashboard/requests/new/travel-advance': typeof AuthDashboardRequestsNewTravelAdvanceRoute
   '/dashboard/requests/new/travel-reimbursement': typeof AuthDashboardRequestsNewTravelReimbursementRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/review': typeof AuthReviewIndexRoute
   '/dashboard/requests': typeof AuthDashboardRequestsIndexRoute
   '/dashboard/requests/$requestId/edit': typeof AuthDashboardRequestsRequestIdEditRoute
+  '/dashboard/requests/$requestId/report': typeof AuthDashboardRequestsRequestIdReportRoute
   '/dashboard/requests/new/reimbursement': typeof AuthDashboardRequestsNewReimbursementRoute
   '/dashboard/requests/new/travel-advance': typeof AuthDashboardRequestsNewTravelAdvanceRoute
   '/dashboard/requests/new/travel-reimbursement': typeof AuthDashboardRequestsNewTravelReimbursementRoute
@@ -230,6 +239,7 @@ export interface FileRoutesById {
   '/_auth/dashboard/requests/new': typeof AuthDashboardRequestsNewRouteWithChildren
   '/_auth/dashboard/requests/': typeof AuthDashboardRequestsIndexRoute
   '/_auth/dashboard/requests/$requestId/edit': typeof AuthDashboardRequestsRequestIdEditRoute
+  '/_auth/dashboard/requests/$requestId/report': typeof AuthDashboardRequestsRequestIdReportRoute
   '/_auth/dashboard/requests/new/reimbursement': typeof AuthDashboardRequestsNewReimbursementRoute
   '/_auth/dashboard/requests/new/travel-advance': typeof AuthDashboardRequestsNewTravelAdvanceRoute
   '/_auth/dashboard/requests/new/travel-reimbursement': typeof AuthDashboardRequestsNewTravelReimbursementRoute
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/dashboard/requests/new'
     | '/dashboard/requests/'
     | '/dashboard/requests/$requestId/edit'
+    | '/dashboard/requests/$requestId/report'
     | '/dashboard/requests/new/reimbursement'
     | '/dashboard/requests/new/travel-advance'
     | '/dashboard/requests/new/travel-reimbursement'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/dashboard/requests'
     | '/dashboard/requests/$requestId/edit'
+    | '/dashboard/requests/$requestId/report'
     | '/dashboard/requests/new/reimbursement'
     | '/dashboard/requests/new/travel-advance'
     | '/dashboard/requests/new/travel-reimbursement'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
     | '/_auth/dashboard/requests/new'
     | '/_auth/dashboard/requests/'
     | '/_auth/dashboard/requests/$requestId/edit'
+    | '/_auth/dashboard/requests/$requestId/report'
     | '/_auth/dashboard/requests/new/reimbursement'
     | '/_auth/dashboard/requests/new/travel-advance'
     | '/_auth/dashboard/requests/new/travel-reimbursement'
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRequestsNewReimbursementRouteImport
       parentRoute: typeof AuthDashboardRequestsNewRoute
     }
+    '/_auth/dashboard/requests/$requestId/report': {
+      id: '/_auth/dashboard/requests/$requestId/report'
+      path: '/report'
+      fullPath: '/dashboard/requests/$requestId/report'
+      preLoaderRoute: typeof AuthDashboardRequestsRequestIdReportRouteImport
+      parentRoute: typeof AuthDashboardRequestsRequestIdRoute
+    }
     '/_auth/dashboard/requests/$requestId/edit': {
       id: '/_auth/dashboard/requests/$requestId/edit'
       path: '/edit'
@@ -534,6 +554,7 @@ const AuthReviewRouteRouteWithChildren = AuthReviewRouteRoute._addFileChildren(
 
 interface AuthDashboardRequestsRequestIdRouteChildren {
   AuthDashboardRequestsRequestIdEditRoute: typeof AuthDashboardRequestsRequestIdEditRoute
+  AuthDashboardRequestsRequestIdReportRoute: typeof AuthDashboardRequestsRequestIdReportRoute
   AuthDashboardRequestsRequestIdIndexRoute: typeof AuthDashboardRequestsRequestIdIndexRoute
 }
 
@@ -541,6 +562,8 @@ const AuthDashboardRequestsRequestIdRouteChildren: AuthDashboardRequestsRequestI
   {
     AuthDashboardRequestsRequestIdEditRoute:
       AuthDashboardRequestsRequestIdEditRoute,
+    AuthDashboardRequestsRequestIdReportRoute:
+      AuthDashboardRequestsRequestIdReportRoute,
     AuthDashboardRequestsRequestIdIndexRoute:
       AuthDashboardRequestsRequestIdIndexRoute,
   }

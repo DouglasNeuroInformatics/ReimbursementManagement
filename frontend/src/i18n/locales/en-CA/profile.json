@@ -9,6 +9,10 @@
   "fields": {
     "jobPosition": "Job Position",
     "jobPositionPlaceholder": "e.g. Senior Analyst",
+    "employeeNumber": "Employee Number",
+    "employeeNumberPlaceholder": "e.g. 12345",
+    "department": "Department",
+    "departmentPlaceholder": "e.g. Research",
     "phone": "Phone",
     "phonePlaceholder": "e.g. +1 613 555 0100",
     "extension": "Work Extension",

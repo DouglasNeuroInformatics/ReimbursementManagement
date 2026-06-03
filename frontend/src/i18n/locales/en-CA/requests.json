@@ -33,7 +33,8 @@
     "edit": "Edit",
     "submit": "Submit",
     "revise": "Revise (Back to Draft)",
-    "delete": "Delete"
+    "delete": "Delete",
+    "printReport": "Print Report"
   },
   "fields": {
     "title": "Title",

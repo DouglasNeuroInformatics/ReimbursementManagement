@@ -19,7 +19,7 @@ export async function getActiveAccounts(supervisorId: string) {
 
 export async function createAccount(
   supervisorId: string,
-  data: { accountNumber: string; label: string },
+  data: { accountNumber: string; label: string; fund?: string; primaryCode?: string },
 ) {
   const supervisor = await prisma.user.findUnique({ where: { id: supervisorId } });
   if (!supervisor) throw new AppError(404, "SUPERVISOR_NOT_FOUND");
@@ -36,19 +36,19 @@ export async function createAccount(
     }
     return prisma.supervisorAccount.update({
       where: { id: existing.id },
-      data: { isActive: true, label: data.label },
+      data: { isActive: true, label: data.label, fund: data.fund, primaryCode: data.primaryCode },
     });
   }
 
   return prisma.supervisorAccount.create({
-    data: { supervisorId, accountNumber: data.accountNumber, label: data.label },
+    data: { supervisorId, accountNumber: data.accountNumber, label: data.label, fund: data.fund, primaryCode: data.primaryCode },
   });
 }
 
 export async function updateAccount(
   supervisorId: string,
   accountId: string,
-  data: { accountNumber?: string; label?: string; isActive?: boolean },
+  data: { accountNumber?: string; label?: string; fund?: string | null; primaryCode?: string | null; isActive?: boolean },
 ) {
   const account = await prisma.supervisorAccount.findFirst({
     where: { id: accountId, supervisorId },
@@ -67,6 +67,8 @@ export async function updateAccount(
     data: {
       ...(data.accountNumber !== undefined ? { accountNumber: data.accountNumber } : {}),
       ...(data.label !== undefined ? { label: data.label } : {}),
+      ...(data.fund !== undefined ? { fund: data.fund } : {}),
+      ...(data.primaryCode !== undefined ? { primaryCode: data.primaryCode } : {}),
       ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
     },
   });

@@ -72,7 +72,7 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
   })
 
   const addAccount = useMutation({
-    mutationFn: (d: { accountNumber: string; label: string }) => api.post(`/api/supervisors/${user.id}/accounts`, d),
+    mutationFn: (d: { accountNumber: string; label: string; fund?: string; primaryCode?: string }) => api.post(`/api/supervisors/${user.id}/accounts`, d),
     onSuccess: () => { refetchAccounts(); qc.invalidateQueries({ queryKey: ['accounts', user.id] }) },
   })
   const deactivateAccount = useMutation({
@@ -82,6 +82,8 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
 
   const [newAccNum, setNewAccNum] = useState('')
   const [newAccLabel, setNewAccLabel] = useState('')
+  const [newAccFund, setNewAccFund] = useState('')
+  const [newAccPrimaryCode, setNewAccPrimaryCode] = useState('')
 
   return (
     <>
@@ -130,14 +132,20 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('accountsHeader', { name: `${user.firstName} ${user.lastName}` })}</p>
               {accounts.map((a) => (
                 <div key={a.id} className="flex items-center justify-between py-1 px-3 bg-white border border-gray-100 rounded text-sm">
-                  <span className={a.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}>{a.accountNumber} — {a.label}</span>
+                  <span className={a.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}>
+                    {a.accountNumber} — {a.label}
+                    {a.fund && <span className="text-gray-400 ml-2">({t('accountFund')}: {a.fund})</span>}
+                    {a.primaryCode && <span className="text-gray-400 ml-2">({t('accountPrimaryCode')}: {a.primaryCode})</span>}
+                  </span>
                   {a.isActive && <Button size="sm" variant="ghost" onClick={() => deactivateAccount.mutate(a.id)}>{t('deactivate')}</Button>}
                 </div>
               ))}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <input placeholder={t('accountNumber') as string} value={newAccNum} onChange={(e) => setNewAccNum(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm w-32" />
-                <input placeholder={t('accountLabel') as string} value={newAccLabel} onChange={(e) => setNewAccLabel(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm flex-1" />
-                <Button size="sm" onClick={() => { if (newAccNum && newAccLabel) { addAccount.mutate({ accountNumber: newAccNum, label: newAccLabel }); setNewAccNum(''); setNewAccLabel('') } }} loading={addAccount.isPending}>{t('forms:add')}</Button>
+                <input placeholder={t('accountLabel') as string} value={newAccLabel} onChange={(e) => setNewAccLabel(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm flex-1 min-w-[120px]" />
+                <input placeholder={t('accountFund') as string} value={newAccFund} onChange={(e) => setNewAccFund(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm w-28" />
+                <input placeholder={t('accountPrimaryCode') as string} value={newAccPrimaryCode} onChange={(e) => setNewAccPrimaryCode(e.target.value)} className="border border-gray-300 rounded px-2 py-1 text-sm w-28" />
+                <Button size="sm" onClick={() => { if (newAccNum && newAccLabel) { addAccount.mutate({ accountNumber: newAccNum, label: newAccLabel, fund: newAccFund || undefined, primaryCode: newAccPrimaryCode || undefined }); setNewAccNum(''); setNewAccLabel(''); setNewAccFund(''); setNewAccPrimaryCode('') } }} loading={addAccount.isPending}>{t('forms:add')}</Button>
               </div>
             </div>
           </td>

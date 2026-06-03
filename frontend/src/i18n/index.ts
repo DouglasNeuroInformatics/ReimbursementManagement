@@ -14,6 +14,7 @@ import enAdmin from './locales/en-CA/admin.json'
 import enReview from './locales/en-CA/review.json'
 import enFinance from './locales/en-CA/finance.json'
 import enForms from './locales/en-CA/forms.json'
+import enReport from './locales/en-CA/report.json'
 
 import frCommon from './locales/fr-CA/common.json'
 import frAuth from './locales/fr-CA/auth.json'
@@ -26,17 +27,20 @@ import frAdmin from './locales/fr-CA/admin.json'
 import frReview from './locales/fr-CA/review.json'
 import frFinance from './locales/fr-CA/finance.json'
 import frForms from './locales/fr-CA/forms.json'
+import frReport from './locales/fr-CA/report.json'
 
 const resources = {
   'en-CA': {
     common: enCommon, auth: enAuth, enums: enEnums, errors: enErrors,
     policies: enPolicies, requests: enRequests, profile: enProfile,
     admin: enAdmin, review: enReview, finance: enFinance, forms: enForms,
+    report: enReport,
   },
   'fr-CA': {
     common: frCommon, auth: frAuth, enums: frEnums, errors: frErrors,
     policies: frPolicies, requests: frRequests, profile: frProfile,
     admin: frAdmin, review: frReview, finance: frFinance, forms: frForms,
+    report: frReport,
   },
 } as const
 
@@ -55,7 +59,7 @@ i18n
     fallbackLng: DEFAULT_LOCALE,
     supportedLngs: [...SUPPORTED_LOCALES],
     defaultNS: 'common',
-    ns: ['common', 'auth', 'enums', 'errors', 'policies', 'requests', 'profile', 'admin', 'review', 'finance', 'forms'],
+    ns: ['common', 'auth', 'enums', 'errors', 'policies', 'requests', 'profile', 'admin', 'review', 'finance', 'forms', 'report'],
     load: 'currentOnly',
     detection: {
       order: ['localStorage', 'navigator'],

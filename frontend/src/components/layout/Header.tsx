@@ -9,7 +9,7 @@ export function Header({ user }: Props) {
   const { logout } = useAuth()
   const { t } = useTranslation(['common', 'enums'])
   return (
-    <header className="bg-white/30 backdrop-blur-md border-b border-white/40 px-6 md:px-8 py-4 flex items-center justify-between shrink-0 z-10 sticky top-0">
+    <header className="bg-white/30 backdrop-blur-md border-b border-white/40 px-6 md:px-8 py-4 flex items-center justify-between shrink-0 z-10 sticky top-0 print:hidden">
       <div className="md:hidden flex items-center">
         <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500 font-outfit tracking-tight">
           {t('appTitleShort')}

@@ -9,6 +9,10 @@
   "fields": {
     "jobPosition": "Poste",
     "jobPositionPlaceholder": "ex. Analyste principal",
+    "employeeNumber": "Numéro d'employé",
+    "employeeNumberPlaceholder": "ex. 12345",
+    "department": "Département",
+    "departmentPlaceholder": "ex. Recherche",
     "phone": "Téléphone",
     "phonePlaceholder": "ex. +1 613 555 0100",
     "extension": "Poste interne",

@@ -14,9 +14,10 @@ frontend/dist/
 backend/node_modules/
 backend/src/generated/
 
-# IDE
+# IDE / agent tooling
 .vscode/
 .idea/
+.serena/
 *.swp
 *.swo
 *~

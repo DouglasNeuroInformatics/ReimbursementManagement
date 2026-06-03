@@ -1,0 +1,72 @@
+{
+  "title": "Demande de paiement",
+  "subtitle": "Hôpital Douglas Hospital",
+  "header": {
+    "payTo": "Payez à l'ordre de / Pay to the order of",
+    "date": "Date",
+    "requestId": "N° de demande"
+  },
+  "requester": {
+    "name": "Nom / Name",
+    "address": "Adresse / Address",
+    "department": "Département / Department",
+    "employeeNumber": "N° employé / Employee #",
+    "phone": "Téléphone / Phone",
+    "ext": "poste",
+    "jobPosition": "Poste / Position"
+  },
+  "distribution": {
+    "title": "Distribution des dépenses / Expense Distribution",
+    "fund": "Fonds / Fund",
+    "primaryCode": "Code primaire / Primary Code",
+    "secondaryCode": "Code secondaire / Secondary Code",
+    "amount": "Montant / Amount",
+    "total": "Total",
+    "byCode": "Totaux par code secondaire"
+  },
+  "items": {
+    "title": "Lignes de dépense / Line Items",
+    "description": "Description",
+    "date": "Date",
+    "vendor": "Fournisseur",
+    "category": "Catégorie",
+    "amount": "Montant",
+    "codeSecondaire": "Code secondaire"
+  },
+  "travel": {
+    "title": "Détails du voyage / Travel Details",
+    "destination": "Destination",
+    "purpose": "Objet",
+    "departure": "Départ",
+    "return": "Retour",
+    "estimatedAmount": "Montant estimé",
+    "totalAmount": "Montant total"
+  },
+  "justification": {
+    "title": "Justification / Description",
+    "none": "Aucune description fournie."
+  },
+  "signatures": {
+    "title": "Signatures / Signatures",
+    "requestedBy": "Demandé par / Requested by",
+    "authorizedBy": "Autorisé par / Authorized by",
+    "financeSignoff": "Approbation financière {{n}}",
+    "paidBy": "Payé par / Paid by",
+    "receivedBy": "Reçu par / Received by",
+    "date": "Date",
+    "account": "Compte",
+    "comment": "Commentaire"
+  },
+  "documents": {
+    "title": "Documents joints / Attached Documents",
+    "filename": "Nom du fichier",
+    "size": "Taille"
+  },
+  "toolbar": {
+    "print": "Imprimer",
+    "back": "Retour"
+  },
+  "error": {
+    "load": "Impossible de charger le rapport. / Unable to load report."
+  }
+}

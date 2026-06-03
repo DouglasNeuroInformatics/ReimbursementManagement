@@ -33,7 +33,8 @@
     "edit": "Modifier",
     "submit": "Soumettre",
     "revise": "Réviser (retour au brouillon)",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "printReport": "Imprimer le rapport"
   },
   "fields": {
     "title": "Titre",

@@ -13,6 +13,8 @@ const USER_SELECT = {
   supervisor: {
     select: { id: true, firstName: true, lastName: true, email: true },
   },
+  employeeNumber: true,
+  department: true,
   createdAt: true,
 } as const;
 
@@ -37,7 +39,7 @@ export async function listUsers() {
 
 export async function updateUser(
   targetId: string,
-  data: { role?: Role; supervisorId?: string | null },
+  data: { role?: Role; supervisorId?: string | null; employeeNumber?: string | null; department?: string | null },
 ) {
   const user = await prisma.user.findUnique({ where: { id: targetId } });
   if (!user) throw new AppError(404, "USER_NOT_FOUND");
@@ -61,6 +63,12 @@ export async function updateUser(
       ...(data.role !== undefined ? { role: data.role } : {}),
       ...(data.supervisorId !== undefined
         ? { supervisorId: data.supervisorId }
+        : {}),
+      ...(data.employeeNumber !== undefined
+        ? { employeeNumber: data.employeeNumber }
+        : {}),
+      ...(data.department !== undefined
+        ? { department: data.department }
         : {}),
     },
     select: USER_UPDATE_SELECT,

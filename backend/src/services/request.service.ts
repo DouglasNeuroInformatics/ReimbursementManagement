@@ -74,11 +74,11 @@ const requestInclude = {
   approvals: {
     include: {
       actor: { select: { id: true, firstName: true, lastName: true } },
-      account: { select: { id: true, accountNumber: true, label: true } },
+      account: { select: { id: true, accountNumber: true, label: true, fund: true, primaryCode: true } },
     },
     orderBy: { createdAt: "asc" as const },
   },
-} as const;
+};
 
 function canView(
   request: { userId: string; user: { supervisorId: string | null } },
@@ -119,7 +119,7 @@ export async function getRequests(
       approvals: {
         include: {
           actor: { select: { id: true, firstName: true, lastName: true } },
-          account: { select: { id: true, accountNumber: true, label: true } },
+          account: { select: { id: true, accountNumber: true, label: true, fund: true, primaryCode: true } },
         },
         orderBy: { createdAt: "asc" },
       },

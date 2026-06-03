@@ -1,0 +1,72 @@
+{
+  "title": "Request for Payment",
+  "subtitle": "Hôpital Douglas Hospital",
+  "header": {
+    "payTo": "Pay to the order of / Payez à l'ordre de",
+    "date": "Date",
+    "requestId": "Request #"
+  },
+  "requester": {
+    "name": "Name / Nom",
+    "address": "Address / Adresse",
+    "department": "Department / Département",
+    "employeeNumber": "Employee # / N° employé",
+    "phone": "Phone / Téléphone",
+    "ext": "ext.",
+    "jobPosition": "Position / Poste"
+  },
+  "distribution": {
+    "title": "Expense Distribution / Distribution des dépenses",
+    "fund": "Fund / Fonds",
+    "primaryCode": "Primary Code / Code primaire",
+    "secondaryCode": "Secondary Code / Code secondaire",
+    "amount": "Amount / Montant",
+    "total": "Total",
+    "byCode": "Totals by Code Secondaire"
+  },
+  "items": {
+    "title": "Line Items / Lignes de dépense",
+    "description": "Description",
+    "date": "Date",
+    "vendor": "Vendor",
+    "category": "Category",
+    "amount": "Amount",
+    "codeSecondaire": "Code Secondaire"
+  },
+  "travel": {
+    "title": "Travel Details / Détails du voyage",
+    "destination": "Destination",
+    "purpose": "Purpose",
+    "departure": "Departure",
+    "return": "Return",
+    "estimatedAmount": "Estimated Amount",
+    "totalAmount": "Total Amount"
+  },
+  "justification": {
+    "title": "Justification / Description",
+    "none": "No description provided."
+  },
+  "signatures": {
+    "title": "Signatures / Signatures",
+    "requestedBy": "Requested by / Demandé par",
+    "authorizedBy": "Authorized by / Autorisé par",
+    "financeSignoff": "Finance approval {{n}}",
+    "paidBy": "Paid by / Payé par",
+    "receivedBy": "Received by / Reçu par",
+    "date": "Date",
+    "account": "Account",
+    "comment": "Comment"
+  },
+  "documents": {
+    "title": "Attached Documents / Documents joints",
+    "filename": "Filename",
+    "size": "Size"
+  },
+  "toolbar": {
+    "print": "Print",
+    "back": "Back"
+  },
+  "error": {
+    "load": "Unable to load report. / Impossible de charger le rapport."
+  }
+}

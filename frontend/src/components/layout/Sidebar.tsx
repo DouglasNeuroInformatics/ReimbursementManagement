@@ -19,7 +19,7 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
 export function Sidebar({ user }: Props) {
   const { t } = useTranslation(['common', 'enums'])
   return (
-    <aside className="w-64 glass-dark !bg-white/40 border border-white/60 flex flex-col shrink-0 rounded-2xl shadow-sm overflow-hidden hidden md:flex animate-slide-in">
+    <aside className="w-64 glass-dark !bg-white/40 border border-white/60 flex flex-col shrink-0 rounded-2xl shadow-sm overflow-hidden hidden md:flex animate-slide-in print:!hidden">
       <div className="px-6 py-6 border-b border-white/40">
         <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-primary-500 font-outfit tracking-tight">
           {t('appTitleShort')}

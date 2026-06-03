@@ -78,6 +78,8 @@ const profileSchema = z.object({
   phone: z.string().nullable().optional(),
   extension: z.string().nullable().optional(),
   jobPosition: z.string().nullable().optional(),
+  employeeNumber: z.string().nullable().optional(),
+  department: z.string().nullable().optional(),
   preferredLocale: z.enum(SUPPORTED_LOCALES).optional(),
 });
 

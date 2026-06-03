@@ -61,6 +61,8 @@ export const ERROR_CODES = [
   "DOCUMENT_FILE_TOO_LARGE",
   "DOCUMENT_TYPE_NOT_ALLOWED",
   "DOCUMENT_ITEM_MISMATCH",
+  // Report
+  "REPORT_WRONG_STATUS",
 ] as const;
 
 export type ErrorCode = typeof ERROR_CODES[number];

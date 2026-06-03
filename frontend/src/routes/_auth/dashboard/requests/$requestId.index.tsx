@@ -30,6 +30,7 @@ function RequestDetailPage() {
   const canSubmit = isOwner && request.status === 'DRAFT'
   const canRevise = isOwner && (request.status === 'SUPERVISOR_REJECTED' || request.status === 'FINANCE_REJECTED')
   const canDelete = isOwner && request.status === 'DRAFT'
+  const canPrint = request.status === 'FINANCE_APPROVED' || request.status === 'PAID'
 
   return (
     <div className="max-w-3xl space-y-5">
@@ -42,6 +43,11 @@ function RequestDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          {canPrint && (
+            <Link to="/dashboard/requests/$requestId/report" params={{ requestId }} target="_blank">
+              <Button size="sm" variant="secondary">{t('actions.printReport')}</Button>
+            </Link>
+          )}
           {canEdit && (
             <Link to="/dashboard/requests/$requestId/edit" params={{ requestId }}>
               <Button size="sm" variant="secondary">{t('actions.edit')}</Button>

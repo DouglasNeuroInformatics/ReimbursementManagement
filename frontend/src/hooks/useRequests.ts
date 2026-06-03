@@ -126,3 +126,105 @@ export function useCodeSecondaire() {
     staleTime: Infinity,
   })
 }
+
+export function useReport(id: string | undefined) {
+  return useQuery({
+    queryKey: ['report', id],
+    queryFn: () =>
+      api.get<{ report: ReportData }>(`/api/reports/${id}`).then((r) => r.report),
+    enabled: !!id,
+  })
+}
+
+export interface ReportLineItem {
+  itemId: string
+  itemType: 'reimbursement' | 'travel_advance' | 'travel_expense'
+  description: string
+  date: string | null
+  vendor: string | null
+  category: string | null
+  amount: number
+  notes: string | null
+  codeSecondaire: string | null
+  codeSecondaireLabel: string | null
+  sortOrder: number
+}
+
+export interface ReportData {
+  request: {
+    id: string
+    title: string
+    type: string
+    status: string
+    description: string | null
+    submittedAt: string | null
+    createdAt: string
+  }
+  requester: {
+    firstName: string
+    lastName: string
+    email: string
+    employeeNumber: string | null
+    department: string | null
+    phone: string | null
+    extension: string | null
+    address: string | null
+    jobPosition: string | null
+  }
+  supervisor: { firstName: string; lastName: string; email: string } | null
+  billingAccount: {
+    accountNumber: string
+    label: string
+    fund: string | null
+    primaryCode: string | null
+  } | null
+  lineItems: ReportLineItem[]
+  totals: {
+    byCode: Array<{ code: string; description: string; amount: number }>
+    grandTotal: number
+  }
+  approvals: Array<{
+    actor: { firstName: string; lastName: string; role: string }
+    action: string
+    stage: string
+    comment: string | null
+    account: { accountNumber: string; label: string; fund: string | null; primaryCode: string | null } | null
+    createdAt: string
+  }>
+  supervisorApproval: {
+    actor: { firstName: string; lastName: string }
+    account: { accountNumber: string; label: string; fund: string | null; primaryCode: string | null } | null
+    comment: string | null
+    createdAt: string
+  } | null
+  financeApprovals: Array<{
+    actor: { firstName: string; lastName: string }
+    comment: string | null
+    createdAt: string
+  }>
+  paidApproval: {
+    actor: { firstName: string; lastName: string }
+    comment: string | null
+    createdAt: string
+  } | null
+  travelDetails: {
+    type: 'TRAVEL_ADVANCE' | 'TRAVEL_REIMBURSEMENT'
+    destination: string
+    purpose: string
+    departureDate: string
+    returnDate: string
+    estimatedAmount?: number
+    totalAmount?: number
+  } | null
+  documents: Array<{
+    id: string
+    filename: string
+    contentType: string
+    sizeBytes: number
+    uploadedAt: string
+    reimbursementItemId: string | null
+  }>
+  reportMeta: {
+    generatedAt: string
+  }
+}

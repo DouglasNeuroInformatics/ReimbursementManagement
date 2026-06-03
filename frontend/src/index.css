@@ -73,3 +73,83 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+@media print {
+  /* Unclip the app shell so report content flows across pages instead of
+     being trapped in the h-screen / overflow-hidden layout. */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body {
+    background: white !important;
+    font-size: 11pt;
+    color: black !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:px-0 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .print\:py-0 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+
+  .print\:mt-4 {
+    margin-top: 1rem !important;
+  }
+
+  .report-page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .report-content {
+    padding: 0.5in !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  .border,
+  .border-b,
+  .border-t,
+  .border-gray-300,
+  .border-gray-200,
+  .border-gray-400 {
+    border-color: #999 !important;
+  }
+
+  .bg-gray-100,
+  .bg-gray-50 {
+    background: #f3f3f3 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

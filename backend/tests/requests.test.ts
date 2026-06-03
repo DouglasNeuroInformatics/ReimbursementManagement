@@ -1363,6 +1363,7 @@ Deno.test({ name: "Requests: GET /api/requests/:id - FINANCIAL_ADMIN can view an
   });
 
   const request = await prisma.request.findFirst({ where: { title: "Admin Review Test" } });
+  assertExists(request);
 
   const loginResponse = await makeRequest(API_BASE, {
     method: "POST",

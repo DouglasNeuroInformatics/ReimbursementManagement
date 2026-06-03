@@ -21,6 +21,8 @@ function ProfilePage() {
   const [phone, setPhone] = useState('')
   const [extension, setExtension] = useState('')
   const [address, setAddress] = useState('')
+  const [employeeNumber, setEmployeeNumber] = useState('')
+  const [department, setDepartment] = useState('')
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,6 +32,8 @@ function ProfilePage() {
       setPhone(user.phone ?? '')
       setExtension(user.extension ?? '')
       setAddress(user.address ?? '')
+      setEmployeeNumber(user.employeeNumber ?? '')
+      setDepartment(user.department ?? '')
     }
   }, [user])
 
@@ -43,6 +47,8 @@ function ProfilePage() {
         phone: phone.trim() || null,
         extension: extension.trim() || null,
         address: address.trim() || null,
+        employeeNumber: employeeNumber.trim() || null,
+        department: department.trim() || null,
       })
       setSaved(true)
     } catch (err: unknown) {
@@ -87,6 +93,18 @@ function ProfilePage() {
               value={jobPosition}
               onChange={(e) => { setSaved(false); setJobPosition(e.target.value) }}
               placeholder={t('fields.jobPositionPlaceholder') as string}
+            />
+            <Input
+              label={t('fields.employeeNumber') as string}
+              value={employeeNumber}
+              onChange={(e) => { setSaved(false); setEmployeeNumber(e.target.value) }}
+              placeholder={t('fields.employeeNumberPlaceholder') as string}
+            />
+            <Input
+              label={t('fields.department') as string}
+              value={department}
+              onChange={(e) => { setSaved(false); setDepartment(e.target.value) }}
+              placeholder={t('fields.departmentPlaceholder') as string}
             />
             <Input
               label={t('fields.phone') as string}

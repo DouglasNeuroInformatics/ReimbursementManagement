@@ -12,11 +12,15 @@ router.use("*", authenticate);
 const createAccountSchema = z.object({
   accountNumber: z.string().min(1, "Account number is required"),
   label: z.string().min(1, "Label is required"),
+  fund: z.string().optional(),
+  primaryCode: z.string().optional(),
 });
 
 const updateAccountSchema = z.object({
   accountNumber: z.string().min(1).optional(),
   label: z.string().min(1).optional(),
+  fund: z.string().nullable().optional(),
+  primaryCode: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

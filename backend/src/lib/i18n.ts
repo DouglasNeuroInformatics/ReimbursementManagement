@@ -61,6 +61,7 @@ const EN: Record<ErrorCode, string> = {
   DOCUMENT_FILE_TOO_LARGE: "File exceeds maximum size of {{maxMb}}MB",
   DOCUMENT_TYPE_NOT_ALLOWED: "File type '{{fileType}}' is not allowed",
   DOCUMENT_ITEM_MISMATCH: "Item does not belong to this request",
+  REPORT_WRONG_STATUS: "Report is only available for finance-approved or paid requests",
 };
 
 const FR: Record<ErrorCode, string> = {
@@ -136,6 +137,7 @@ const FR: Record<ErrorCode, string> = {
   DOCUMENT_TYPE_NOT_ALLOWED:
     "Le type de fichier « {{fileType}} » n'est pas autorisé",
   DOCUMENT_ITEM_MISMATCH: "L'élément n'appartient pas à cette demande",
+  REPORT_WRONG_STATUS: "Le rapport n'est disponible que pour les demandes approuvées ou payées",
 };
 
 const MESSAGES: Record<Locale, Record<ErrorCode, string>> = {

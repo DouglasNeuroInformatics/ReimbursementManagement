@@ -13,5 +13,7 @@
   "accountsHeader": "Numéros de compte pour {{name}}",
   "accountNumber": "N° de compte",
   "accountLabel": "Libellé",
+  "accountFund": "Fonds",
+  "accountPrimaryCode": "Code primaire",
   "deactivate": "Désactiver"
 }

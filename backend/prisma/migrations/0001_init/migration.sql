@@ -27,7 +27,10 @@ CREATE TABLE "User" (
     "phone" TEXT,
     "extension" TEXT,
     "address" TEXT,
+    "employeeNumber" TEXT,
+    "department" TEXT,
     "role" "Role" NOT NULL DEFAULT 'USER',
+    "preferredLocale" TEXT NOT NULL DEFAULT 'fr-CA',
     "supervisorId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -41,6 +44,8 @@ CREATE TABLE "SupervisorAccount" (
     "supervisorId" TEXT NOT NULL,
     "accountNumber" TEXT NOT NULL,
     "label" TEXT NOT NULL,
+    "fund" TEXT,
+    "primaryCode" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -191,13 +196,10 @@ CREATE UNIQUE INDEX "SupervisorAccount_supervisorId_accountNumber_key" ON "Super
 CREATE UNIQUE INDEX "Session_token_key" ON "Session"("token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ReimbursementDetail_requestId_key" ON "ReimbursementDetail"("requestId");
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TravelAdvanceDetail_requestId_key" ON "TravelAdvanceDetail"("requestId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "TravelReimbursementDetail_requestId_key" ON "TravelReimbursementDetail"("requestId");
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 
 -- CreateIndex
 CREATE INDEX "Request_userId_idx" ON "Request"("userId");
@@ -209,6 +211,15 @@ CREATE INDEX "Request_status_idx" ON "Request"("status");
 CREATE INDEX "Request_userId_status_idx" ON "Request"("userId", "status");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ReimbursementDetail_requestId_key" ON "ReimbursementDetail"("requestId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TravelAdvanceDetail_requestId_key" ON "TravelAdvanceDetail"("requestId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TravelReimbursementDetail_requestId_key" ON "TravelReimbursementDetail"("requestId");
+
+-- CreateIndex
 CREATE INDEX "Document_requestId_idx" ON "Document"("requestId");
 
 -- CreateIndex
@@ -216,12 +227,6 @@ CREATE INDEX "Approval_requestId_idx" ON "Approval"("requestId");
 
 -- CreateIndex
 CREATE INDEX "Approval_actorId_idx" ON "Approval"("actorId");
-
--- CreateIndex
-CREATE INDEX "Session_userId_idx" ON "Session"("userId");
-
--- CreateIndex
-CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_supervisorId_fkey" FOREIGN KEY ("supervisorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -267,3 +272,4 @@ ALTER TABLE "Approval" ADD CONSTRAINT "Approval_actorId_fkey" FOREIGN KEY ("acto
 
 -- AddForeignKey
 ALTER TABLE "Approval" ADD CONSTRAINT "Approval_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "SupervisorAccount"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

@@ -11,6 +11,8 @@ router.use("*", authenticate);
 const updateUserSchema = z.object({
   role: z.enum(["USER", "SUPERVISOR", "FINANCIAL_ADMIN"]).optional(),
   supervisorId: z.string().uuid().nullable().optional(),
+  employeeNumber: z.string().nullable().optional(),
+  department: z.string().nullable().optional(),
 });
 
 router.get("/", requireRole("FINANCIAL_ADMIN", "SUPERVISOR"), async (c) => {

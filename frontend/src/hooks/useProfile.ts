@@ -10,6 +10,8 @@ export function useUpdateProfile() {
       phone?: string | null
       extension?: string | null
       address?: string | null
+      employeeNumber?: string | null
+      department?: string | null
     }) => api.patch<{ user: User }>('/api/auth/me', data).then((r) => r.user),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['auth', 'me'] }),
   })

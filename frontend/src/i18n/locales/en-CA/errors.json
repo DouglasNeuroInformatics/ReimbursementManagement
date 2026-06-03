@@ -50,6 +50,7 @@
   "DOCUMENT_FILE_TOO_LARGE": "File exceeds the maximum size of {{maxMb}} MB",
   "DOCUMENT_TYPE_NOT_ALLOWED": "File type '{{fileType}}' is not allowed",
   "DOCUMENT_ITEM_MISMATCH": "Item does not belong to this request",
+  "REPORT_WRONG_STATUS": "Report is only available for finance-approved or paid requests",
   "validation": {
     "VALIDATION_REQUIRED": "Required",
     "VALIDATION_TYPE": "Invalid value",

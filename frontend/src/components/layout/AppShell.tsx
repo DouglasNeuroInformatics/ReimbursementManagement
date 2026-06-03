@@ -17,16 +17,16 @@ export function AppShell({ user, children }: Props) {
   }, [user.preferredLocale])
 
   return (
-    <div className="flex h-screen bg-slate-50/50 relative overflow-hidden font-inter text-slate-900">
+    <div className="flex h-screen bg-slate-50/50 relative overflow-hidden font-inter text-slate-900 print:block print:h-auto print:overflow-visible print:bg-white">
       {/* Ambient background decoration */}
-      <div className="absolute -top-[15%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-200/30 blur-[100px] pointer-events-none" />
-      <div className="absolute -bottom-[15%] -right-[10%] w-[60%] h-[50%] rounded-full bg-blue-200/20 blur-[100px] pointer-events-none" />
+      <div className="absolute -top-[15%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary-200/30 blur-[100px] pointer-events-none print:hidden" />
+      <div className="absolute -bottom-[15%] -right-[10%] w-[60%] h-[50%] rounded-full bg-blue-200/20 blur-[100px] pointer-events-none print:hidden" />
 
-      <div className="flex w-full h-full p-3 sm:p-4 gap-4 relative z-10 transition-all duration-300">
+      <div className="flex w-full h-full p-3 sm:p-4 gap-4 relative z-10 transition-all duration-300 print:block print:h-auto print:p-0 print:gap-0">
         <Sidebar user={user} />
-        <div className="flex flex-col flex-1 overflow-hidden rounded-2xl glass shadow-sm border border-white/60">
+        <div className="flex flex-col flex-1 overflow-hidden rounded-2xl glass shadow-sm border border-white/60 print:block print:overflow-visible print:rounded-none print:shadow-none print:border-0 print:bg-transparent">
           <Header user={user} />
-          <main className="flex-1 overflow-y-auto p-6 md:p-8 animate-fade-in">{children}</main>
+          <main className="flex-1 overflow-y-auto p-6 md:p-8 animate-fade-in print:overflow-visible print:p-0 print:animate-none">{children}</main>
         </div>
       </div>
     </div>

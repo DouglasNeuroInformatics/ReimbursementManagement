@@ -25,6 +25,8 @@ export interface User {
   phone: string | null
   extension: string | null
   address: string | null
+  employeeNumber: string | null
+  department: string | null
   createdAt: string
 }
 
@@ -48,7 +50,7 @@ export interface Approval {
   stage: 'SUPERVISOR' | 'FINANCE'
   comment: string | null
   accountId: string | null
-  account: { id: string; accountNumber: string; label: string } | null
+  account: { id: string; accountNumber: string; label: string; fund: string | null; primaryCode: string | null } | null
   createdAt: string
 }
 
@@ -131,6 +133,8 @@ export interface SupervisorAccount {
   supervisorId: string
   accountNumber: string
   label: string
+  fund: string | null
+  primaryCode: string | null
   isActive: boolean
   createdAt: string
   updatedAt: string

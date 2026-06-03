@@ -107,6 +107,8 @@ export async function getMe(userId: string) {
       phone: true,
       extension: true,
       jobPosition: true,
+      employeeNumber: true,
+      department: true,
     },
   });
   if (!user) throw new AppError(404, "USER_NOT_FOUND");
@@ -118,6 +120,8 @@ export async function updateMe(userId: string, data: {
   phone?: string | null;
   extension?: string | null;
   jobPosition?: string | null;
+  employeeNumber?: string | null;
+  department?: string | null;
   preferredLocale?: Locale;
 }) {
   const user = await prisma.user.update({
@@ -138,6 +142,8 @@ export async function updateMe(userId: string, data: {
       phone: true,
       extension: true,
       jobPosition: true,
+      employeeNumber: true,
+      department: true,
       createdAt: true,
     },
   });
