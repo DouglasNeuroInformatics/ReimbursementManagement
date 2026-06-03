@@ -47,6 +47,7 @@ export function Sidebar({ user }: Props) {
         {user.role === 'FINANCIAL_ADMIN' && (
           <>
             <NavItem to="/finance">{t('nav.financeQueue')}</NavItem>
+            <NavItem to="/finance/history">{t('nav.financeHistory')}</NavItem>
             <NavItem to="/admin/users">{t('nav.admin')}</NavItem>
           </>
         )}

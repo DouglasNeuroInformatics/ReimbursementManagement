@@ -22,6 +22,7 @@ import { Route as AuthFinanceIndexRouteImport } from './routes/_auth/finance/ind
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthReviewHistoryRouteImport } from './routes/_auth/review/history'
 import { Route as AuthReviewRequestIdRouteImport } from './routes/_auth/review/$requestId'
+import { Route as AuthFinanceHistoryRouteImport } from './routes/_auth/finance/history'
 import { Route as AuthFinanceRequestIdRouteImport } from './routes/_auth/finance/$requestId'
 import { Route as AuthAdminUsersRouteImport } from './routes/_auth/admin/users'
 import { Route as AuthDashboardRequestsIndexRouteImport } from './routes/_auth/dashboard/requests/index'
@@ -98,6 +99,11 @@ const AuthReviewRequestIdRoute = AuthReviewRequestIdRouteImport.update({
   id: '/$requestId',
   path: '/$requestId',
   getParentRoute: () => AuthReviewRouteRoute,
+} as any)
+const AuthFinanceHistoryRoute = AuthFinanceHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthFinanceRouteRoute,
 } as any)
 const AuthFinanceRequestIdRoute = AuthFinanceRequestIdRouteImport.update({
   id: '/$requestId',
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/review': typeof AuthReviewRouteRouteWithChildren
   '/admin/users': typeof AuthAdminUsersRoute
   '/finance/$requestId': typeof AuthFinanceRequestIdRoute
+  '/finance/history': typeof AuthFinanceHistoryRoute
   '/review/$requestId': typeof AuthReviewRequestIdRoute
   '/review/history': typeof AuthReviewHistoryRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthAdminRouteRouteWithChildren
   '/admin/users': typeof AuthAdminUsersRoute
   '/finance/$requestId': typeof AuthFinanceRequestIdRoute
+  '/finance/history': typeof AuthFinanceHistoryRoute
   '/review/$requestId': typeof AuthReviewRequestIdRoute
   '/review/history': typeof AuthReviewHistoryRoute
   '/dashboard': typeof AuthDashboardIndexRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_auth/review': typeof AuthReviewRouteRouteWithChildren
   '/_auth/admin/users': typeof AuthAdminUsersRoute
   '/_auth/finance/$requestId': typeof AuthFinanceRequestIdRoute
+  '/_auth/finance/history': typeof AuthFinanceHistoryRoute
   '/_auth/review/$requestId': typeof AuthReviewRequestIdRoute
   '/_auth/review/history': typeof AuthReviewHistoryRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/admin/users'
     | '/finance/$requestId'
+    | '/finance/history'
     | '/review/$requestId'
     | '/review/history'
     | '/dashboard/'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/users'
     | '/finance/$requestId'
+    | '/finance/history'
     | '/review/$requestId'
     | '/review/history'
     | '/dashboard'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/_auth/review'
     | '/_auth/admin/users'
     | '/_auth/finance/$requestId'
+    | '/_auth/finance/history'
     | '/_auth/review/$requestId'
     | '/_auth/review/history'
     | '/_auth/dashboard/'
@@ -424,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthReviewRequestIdRouteImport
       parentRoute: typeof AuthReviewRouteRoute
     }
+    '/_auth/finance/history': {
+      id: '/_auth/finance/history'
+      path: '/history'
+      fullPath: '/finance/history'
+      preLoaderRoute: typeof AuthFinanceHistoryRouteImport
+      parentRoute: typeof AuthFinanceRouteRoute
+    }
     '/_auth/finance/$requestId': {
       id: '/_auth/finance/$requestId'
       path: '/$requestId'
@@ -525,11 +544,13 @@ const AuthAdminRouteRouteWithChildren = AuthAdminRouteRoute._addFileChildren(
 
 interface AuthFinanceRouteRouteChildren {
   AuthFinanceRequestIdRoute: typeof AuthFinanceRequestIdRoute
+  AuthFinanceHistoryRoute: typeof AuthFinanceHistoryRoute
   AuthFinanceIndexRoute: typeof AuthFinanceIndexRoute
 }
 
 const AuthFinanceRouteRouteChildren: AuthFinanceRouteRouteChildren = {
   AuthFinanceRequestIdRoute: AuthFinanceRequestIdRoute,
+  AuthFinanceHistoryRoute: AuthFinanceHistoryRoute,
   AuthFinanceIndexRoute: AuthFinanceIndexRoute,
 }
 
