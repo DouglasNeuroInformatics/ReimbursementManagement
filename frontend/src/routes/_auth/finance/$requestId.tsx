@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useTranslation, Trans } from 'react-i18next'
 import { useRequest, useFinanceApprove, useFinanceReject, useMarkPaid } from '../../../hooks/useRequests'
 import { StatusBadge } from '../../../components/ui/Badge'
+import { Button } from '../../../components/ui/Button'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
 import { PageSpinner } from '../../../components/ui/Spinner'
 import { FinanceApprovalForm } from '../../../components/forms/ApprovalForm'
@@ -42,6 +43,7 @@ function FinanceDetailPage() {
   const allClassified = allItems.length === 0 || allItems.every((it) => it.codeSecondaire !== null)
 
   const isFinanceActionable = request.status === 'SUPERVISOR_APPROVED' || request.status === 'FINANCE_REVIEWING'
+  const canPrint = request.status === 'FINANCE_APPROVED' || request.status === 'PAID'
   const isFinalSignoff = approvalCount + 1 >= requiredFinanceApprovals
 
   const onAction = async (fn: () => Promise<unknown>) => {
@@ -51,13 +53,20 @@ function FinanceDetailPage() {
 
   return (
     <div className="max-w-5xl space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
-        <div className="flex items-center gap-3 mt-1">
-          <StatusBadge status={request.status} />
-          <span className="text-sm text-gray-500">{t(`requestType.${request.type}`, { ns: 'enums' }) as string}</span>
-          <span className="text-sm text-gray-500">{t('requests:byUser', { first: request.user.firstName, last: request.user.lastName })}</span>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
+          <div className="flex items-center gap-3 mt-1">
+            <StatusBadge status={request.status} />
+            <span className="text-sm text-gray-500">{t(`requestType.${request.type}`, { ns: 'enums' }) as string}</span>
+            <span className="text-sm text-gray-500">{t('requests:byUser', { first: request.user.firstName, last: request.user.lastName })}</span>
+          </div>
         </div>
+        {canPrint && (
+          <Link to="/dashboard/requests/$requestId/report" params={{ requestId }} target="_blank">
+            <Button size="sm" variant="secondary">{t('requests:actions.printReport')}</Button>
+          </Link>
+        )}
       </div>
 
       {isFinanceActionable && (
