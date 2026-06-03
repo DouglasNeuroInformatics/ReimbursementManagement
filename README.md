@@ -42,6 +42,7 @@ A full-stack expense reimbursement and travel request management system with a m
   - [Finance Queue](#finance-queue)
   - [Processing a Request](#processing-a-request)
   - [Marking a Request as Paid](#marking-a-request-as-paid)
+  - [Finance History](#finance-history)
   - [User Management](#user-management)
   - [Supervisor Account Management](#supervisor-account-management)
 - [API Reference](#api-reference)
@@ -474,6 +475,7 @@ The left sidebar is visible on every authenticated page. Navigation items change
 | Review Queue      | Supervisors, Financial Admins       | `/review`                     |
 | Request History   | Supervisors, Financial Admins       | `/review/history`             |
 | Finance Queue     | Financial Admins only               | `/finance`                    |
+| Finance History   | Financial Admins only               | `/finance/history`            |
 | Admin             | Financial Admins only               | `/admin/users`                |
 
 At the bottom of the sidebar, your name and role are displayed. Clicking your name opens your **Profile** page.
@@ -751,6 +753,7 @@ Financial administrators have the highest level of access. They see everything s
 - View all past processed requests in the Request History (same as supervisors).
 - Process supervisor-approved requests in the Finance Queue.
 - Mark approved requests as paid.
+- Browse the complete Finance History of every request in every state and export it to CSV.
 - Manage all users: assign roles, set supervisor relationships, and manage billing accounts.
 
 ### Finance Queue
@@ -798,6 +801,20 @@ Once a request has been finance-approved:
 3. Click **Mark as Paid**.
 
 The request moves to **Paid**, which is the terminal state. It no longer appears in any queue. The requester can see the payment confirmation in their approval history.
+
+### Finance History
+
+Click **Finance History** in the sidebar (Financial Admins only) to open the complete history page (`/finance/history`). Unlike the Finance Queue, which shows only requests currently awaiting finance action, this page lists **every request in every state** -- including **drafts** that have never been submitted.
+
+- **Table**: every request, with the requester's name, title (a clickable link to the read-only detail view), type, status, billing account, and submission date. There is no status filter, so requests of all states appear together.
+- **Read-only detail**: clicking a row opens the same finance detail page used by the queue. Approval actions only appear when the request is in an actionable state, so drafts and already-processed requests are effectively read-only here.
+
+**CSV exports.** Two download buttons let you extract the full dataset for offline analysis (e.g., in Excel):
+
+- **Download line items (CSV)** -- one row per line item across *all* submissions, with submission context columns (request ID, title, type, status, requester, email, employee number, department, supervisor, account, fund) plus per-item detail (item type, description, category, date, vendor, amount, notes, code secondaire and its label).
+- **Download summary (CSV)** -- one row per submission, with the same context plus item count, total amount, and travel fields (destination, purpose, departure/return dates) where applicable.
+
+Both files are UTF-8 with a byte-order mark (so Excel opens them cleanly) and use RFC-4180 quoting. **Column headers and the Status / Type values are localized to your current interface language** (English or French), so switching the language switcher before exporting changes the wording in the downloaded file.
 
 ### User Management
 
@@ -916,6 +933,12 @@ Authentication endpoints are rate-limited to 15 requests per minute per IP addre
 | POST   | `/api/supervisors/:id/accounts`                   | Yes  | FINANCIAL_ADMIN | Create account (accountNumber, label)    |
 | PATCH  | `/api/supervisors/:id/accounts/:accountId`        | Yes  | FINANCIAL_ADMIN | Update account                           |
 | DELETE | `/api/supervisors/:id/accounts/:accountId`        | Yes  | FINANCIAL_ADMIN | Deactivate account (soft delete)         |
+
+### Finance API
+
+| Method | Endpoint                  | Auth | Role            | Description                                                              |
+|--------|---------------------------|------|-----------------|--------------------------------------------------------------------------|
+| GET    | `/api/finance/history`    | Yes  | FINANCIAL_ADMIN | Every request in every state (incl. DRAFT) as raw JSON: per-line-item rows and per-submission summaries, with full submission context. Feeds the Finance History page's CSV exports. |
 
 ---
 

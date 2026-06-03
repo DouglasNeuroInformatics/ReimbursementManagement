@@ -81,8 +81,8 @@ Any finance admin can reject at any point during the finance stage. Same admin c
 
 ### Backend Structure
 - **Entry point**: `backend/main.ts` - mounts Hono routes, initializes S3 bucket
-- **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts, code-secondaire
-- **Services**: `backend/src/services/` - business logic layer (auth, request, approval, classification, storage, account, user)
+- **Routes**: `backend/src/routes/` - auth, requests, approvals, documents, users, accounts, code-secondaire, finance
+- **Services**: `backend/src/services/` - business logic layer (auth, request, approval, classification, storage, account, user, report, finance-history)
 - **Middleware**: `backend/src/middleware/auth.ts` - JWT auth, CSRF protection (`X-Requested-With` header required), role gates
 - **Lib**: `backend/src/lib/` - Prisma client singleton, S3 client, JWT utilities, env validation, code-secondaire codes
 
@@ -90,6 +90,7 @@ Any finance admin can reject at any point during the finance stage. Same admin c
 - **File-based routing**: `frontend/src/routes/` using TanStack Router
 - **Route guards**: `_auth/` wrapper for authenticated routes, nested `route.tsx` for role-based access
 - **Request History**: `_auth/review/history.tsx` - past approved/paid requests visible to SUPERVISOR and FINANCIAL_ADMIN
+- **Finance History**: `_auth/finance/history.tsx` - FINANCIAL_ADMIN-only read-only list of **every** request in **every** state (incl. DRAFT), each linking to its detail view. Offers two client-built CSV exports (one row per line item; one row per submission) fed by `GET /api/finance/history`. CSV headers and status/type enum values are localized to the current UI locale via i18n (`finance` + `enums` namespaces); the backend returns raw JSON. The full list is fetched via `useAllRequests` (follows cursor pagination to exhaustion); CSV building lives in `frontend/src/lib/csv.ts`.
 - **API client**: `frontend/src/lib/api.ts` - fetch wrapper with auto token refresh
 - **State management**: TanStack Query (server state), TanStack Form (form state)
 
