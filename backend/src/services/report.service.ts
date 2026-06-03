@@ -5,7 +5,7 @@ import type { Role } from "../generated/prisma/client.ts";
 
 const codeDescriptionMap = new Map<string, string>(CODES_SECONDAIRES.map((c) => [c.code, c.description]));
 
-type FlatItem = {
+export type FlatItem = {
   itemId: string;
   itemType: "reimbursement" | "travel_advance" | "travel_expense";
   description: string;
@@ -19,15 +19,15 @@ type FlatItem = {
   sortOrder: number;
 };
 
-type ItemAmount = { toNumber: () => number } | string | number;
+export type ItemAmount = { toNumber: () => number } | string | number;
 
-function toAmount(v: ItemAmount): number {
+export function toAmount(v: ItemAmount): number {
   if (typeof v === "object" && "toNumber" in v) return v.toNumber();
   return typeof v === "string" ? parseFloat(v) : v;
 }
 
 /** Source shape flattenItems reads from the report's Prisma payload. */
-type FlattenSource = {
+export type FlattenSource = {
   reimbursement: {
     items: {
       id: string;
@@ -69,7 +69,7 @@ function resolveLabel(code: string | null): string | null {
   return codeDescriptionMap.get(code as string) ?? null;
 }
 
-function flattenItems(request: FlattenSource): FlatItem[] {
+export function flattenItems(request: FlattenSource): FlatItem[] {
   const items: FlatItem[] = [];
 
   if (request.reimbursement?.items) {

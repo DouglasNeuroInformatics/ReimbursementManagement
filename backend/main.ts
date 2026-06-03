@@ -11,6 +11,7 @@ import userRoutes from "./src/routes/users.ts";
 import accountRoutes from "./src/routes/accounts.ts";
 import codeSecondaireRoutes from "./src/routes/code-secondaire.ts";
 import reportRoutes from "./src/routes/reports.ts";
+import financeRoutes from "./src/routes/finance.ts";
 import { initBucket } from "./src/lib/s3.ts";
 
 const env = getEnv();
@@ -57,6 +58,7 @@ api.route("/requests", documentRoutes);
 api.route("/users", userRoutes);
 api.route("/code-secondaire", codeSecondaireRoutes);
 api.route("/reports", reportRoutes);
+api.route("/finance", financeRoutes);
 
 app.route("/api", api);
 
