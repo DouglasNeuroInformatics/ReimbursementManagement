@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { sumAmounts, fmtCurrency } from './currency'
+import { fmtCurrency, getRequestTotal, sumAmounts } from './currency'
+import { mockReimbursementItem, mockRequest } from '../test/handlers'
 
 describe('sumAmounts', () => {
   it('returns 0 for empty array', () => {
@@ -60,5 +61,58 @@ describe('fmtCurrency', () => {
     const a = fmtCurrency(10, 'en-CA')
     const b = fmtCurrency(10, 'en-CA')
     expect(a).toBe(b)
+  })
+})
+
+describe('getRequestTotal', () => {
+  it('sums reimbursement line items', () => {
+    const req = mockRequest({
+      reimbursement: {
+        id: 'rd-1',
+        items: [
+          mockReimbursementItem({ id: 'i1', amount: '10.00' }),
+          mockReimbursementItem({ id: 'i2', amount: '5.50' }),
+        ],
+      },
+    })
+    expect(getRequestTotal(req)).toBe(15.5)
+  })
+
+  it('reads the estimated amount from a travel advance', () => {
+    const req = mockRequest({
+      reimbursement: null,
+      travelAdvance: {
+        id: 'ta-1',
+        destination: 'Ottawa',
+        purpose: 'Conference',
+        departureDate: '2026-02-01T00:00:00.000Z',
+        returnDate: '2026-02-03T00:00:00.000Z',
+        estimatedAmount: '250.00',
+        items: [],
+      },
+    })
+    expect(getRequestTotal(req)).toBe(250)
+  })
+
+  it('reads the total amount from a travel reimbursement', () => {
+    const req = mockRequest({
+      reimbursement: null,
+      travelReimbursement: {
+        id: 'tr-1',
+        destination: 'Ottawa',
+        purpose: 'Conference',
+        departureDate: '2026-02-01T00:00:00.000Z',
+        returnDate: '2026-02-03T00:00:00.000Z',
+        totalAmount: '99.99',
+        advanceRequestId: null,
+        items: [],
+      },
+    })
+    expect(getRequestTotal(req)).toBe(99.99)
+  })
+
+  it('returns null when no detail relation is present', () => {
+    const req = mockRequest({ reimbursement: null })
+    expect(getRequestTotal(req)).toBeNull()
   })
 })
