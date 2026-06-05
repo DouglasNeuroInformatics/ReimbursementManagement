@@ -43,4 +43,33 @@ describe('toCsv', () => {
     const out = toCsv(['x'], [['plain']])
     expect(out).toBe(`${BOM}x\r\nplain`)
   })
+
+  it('neutralizes a formula-injection payload starting with =', () => {
+    const out = toCsv(['title'], [[`=cmd|'/c calc'!A1`]])
+    expect(out).toBe(`${BOM}title\r\n"'=cmd|'/c calc'!A1"`)
+  })
+
+  it('neutralizes every formula trigger (+ - @ tab CR)', () => {
+    for (const trigger of ['+', '-', '@', '\t', '\r']) {
+      const out = toCsv(['x'], [[`${trigger}SUM(A1)`]])
+      const field = out.slice(BOM.length).split('\r\n')[1]
+      expect(field).toBe(`"'${trigger}SUM(A1)"`)
+    }
+  })
+
+  it('never lets a formula cell reach the output with a bare leading trigger', () => {
+    const out = toCsv(['a', 'b'], [['=WEBSERVICE("http://x")', 'safe']])
+    // No field may begin (start-of-record or after a comma) with a bare `=`.
+    expect(out).not.toMatch(/(^|,)=/m)
+  })
+
+  it('does not neutralize a negative number', () => {
+    const out = toCsv(['amount'], [[-5], [-3.5]])
+    expect(out).toBe(`${BOM}amount\r\n-5\r\n-3.5`)
+  })
+
+  it('leaves an interior = untouched and unquoted', () => {
+    const out = toCsv(['x'], [['a=b']])
+    expect(out).toBe(`${BOM}x\r\na=b`)
+  })
 })

@@ -3,14 +3,22 @@ export type CsvCell = string | number | null | undefined
 // Excel only auto-detects UTF-8 when the file starts with a byte-order mark.
 const UTF8_BOM = '﻿'
 
-/** Escape a single field per RFC 4180: quote when it contains `,` `"` or a newline. */
+/**
+ * Escape a single field per RFC 4180 (quote when it contains `,` `"` or a
+ * newline) and neutralize spreadsheet formula injection (CWE-1236): a string
+ * cell whose first character is a formula trigger (`=` `+` `-` `@` tab CR) is
+ * prefixed with a single quote and quoted, so a spreadsheet renders it as
+ * literal text instead of evaluating it. Numbers are program-generated and pass
+ * through untouched (avoids corrupting negative values like `-5`).
+ */
 function escapeCell(cell: CsvCell): string {
   if (cell === null || cell === undefined) return ''
-  const s = String(cell)
-  if (/[",\r\n]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`
-  }
-  return s
+  if (typeof cell === 'number') return String(cell)
+  const s = cell
+  const dangerous = /^[=+\-@\t\r]/.test(s)
+  const needsQuote = dangerous || /[",\r\n]/.test(s)
+  const v = dangerous ? `'${s}` : s
+  return needsQuote ? `"${v.replace(/"/g, '""')}"` : v
 }
 
 /**
