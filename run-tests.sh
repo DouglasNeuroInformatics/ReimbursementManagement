@@ -12,13 +12,21 @@ cleanup() {
     echo "Cleaning up test infrastructure..."
     # Always return to project root before running docker compose
     cd "$SCRIPT_DIR"
-    # Always specify project gracefully to avoid matching global compose
-    docker compose -f docker-compose.dev.yml stop db rustfs
+    # `down` (not `stop`) removes the containers so the next run can recreate
+    # them with their port mappings. Leaving stopped containers behind makes
+    # `up` fail with "name already in use" under podman-compose, and the
+    # recreated container loses its published host ports. Named volumes persist.
+    docker compose -f docker-compose.dev.yml down
     echo "Cleanup complete."
 }
 
 # Register the cleanup function to be called on the EXIT signal (whether success or failure)
 trap cleanup EXIT
+
+# Remove any containers left over from a previous interrupted run, otherwise
+# `up` may reuse a stale container that has no published host ports.
+echo "Clearing any stale test infrastructure..."
+docker compose -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true
 
 echo "Starting test infrastructure..."
 docker compose -f docker-compose.dev.yml up -d db rustfs
