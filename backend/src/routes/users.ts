@@ -24,7 +24,8 @@ router.patch("/:id", requireRole("FINANCIAL_ADMIN"), async (c) => {
   const targetId = c.req.param("id");
   const body = await c.req.json();
   const data = updateUserSchema.parse(body);
-  const user = await userService.updateUser(targetId, data);
+  const currentUserId = c.get("user").id;
+  const user = await userService.updateUser(targetId, data, currentUserId);
   return c.json({ user });
 });
 

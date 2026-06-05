@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../../lib/api'
+import { translateApiError } from '../../../lib/translateApiError'
+import { useAuth } from '../../../hooks/useAuth'
 import { Button } from '../../../components/ui/Button'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
 import { PageSpinner } from '../../../components/ui/Spinner'
@@ -13,6 +15,7 @@ export const Route = createFileRoute('/_auth/admin/users')({ component: AdminUse
 function AdminUsersPage() {
   const qc = useQueryClient()
   const { t } = useTranslation(['admin', 'enums', 'forms'])
+  const { user: currentUser } = useAuth()
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => api.get<{ users: User[] }>('/api/users').then((r) => r.users),
@@ -48,7 +51,7 @@ function AdminUsersPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {users.map((u) => (
-                <UserRow key={u.id} user={u} supervisors={supervisors} onEdit={() => setEditingUser(u.id)} editing={editingUser === u.id} onSave={(d) => updateUser.mutate({ id: u.id, data: d })} onCancel={() => setEditingUser(null)} saving={updateUser.isPending} onToggleAccounts={() => setExpandedAccounts(expandedAccounts === u.id ? null : u.id)} showAccounts={expandedAccounts === u.id} qc={qc} />
+                <UserRow key={u.id} user={u} supervisors={supervisors} isSelf={currentUser?.id === u.id} error={editingUser === u.id ? updateUser.error : null} onEdit={() => { updateUser.reset(); setEditingUser(u.id) }} editing={editingUser === u.id} onSave={(d) => updateUser.mutate({ id: u.id, data: d })} onCancel={() => { updateUser.reset(); setEditingUser(null) }} saving={updateUser.isPending} onToggleAccounts={() => setExpandedAccounts(expandedAccounts === u.id ? null : u.id)} showAccounts={expandedAccounts === u.id} qc={qc} />
               ))}
             </tbody>
           </table>
@@ -58,8 +61,8 @@ function AdminUsersPage() {
   )
 }
 
-function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving, onToggleAccounts, showAccounts, qc }: {
-  user: User; supervisors: User[]; onEdit: () => void; editing: boolean; onSave: (d: Partial<{ role: string; supervisorId: string | null }>) => void; onCancel: () => void; saving: boolean; onToggleAccounts: () => void; showAccounts: boolean; qc: ReturnType<typeof useQueryClient>
+function UserRow({ user, supervisors, isSelf, error, onEdit, editing, onSave, onCancel, saving, onToggleAccounts, showAccounts, qc }: {
+  user: User; supervisors: User[]; isSelf: boolean; error: unknown; onEdit: () => void; editing: boolean; onSave: (d: Partial<{ role: string; supervisorId: string | null }>) => void; onCancel: () => void; saving: boolean; onToggleAccounts: () => void; showAccounts: boolean; qc: ReturnType<typeof useQueryClient>
 }) {
   const { t } = useTranslation(['admin', 'enums', 'forms'])
   const [role, setRole] = useState(user.role)
@@ -92,11 +95,14 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
         <td className="px-4 py-3 text-gray-600">{user.email}</td>
         <td className="px-4 py-3">
           {editing ? (
-            <select value={role} onChange={(e) => setRole(e.target.value as User['role'])} className="border border-gray-300 rounded px-2 py-1 text-sm">
-              <option value="USER">{t('role.USER', { ns: 'enums' }) as string}</option>
-              <option value="SUPERVISOR">{t('role.SUPERVISOR', { ns: 'enums' }) as string}</option>
-              <option value="FINANCIAL_ADMIN">{t('role.FINANCIAL_ADMIN', { ns: 'enums' }) as string}</option>
-            </select>
+            <div className="flex flex-col gap-1">
+              <select value={role} onChange={(e) => setRole(e.target.value as User['role'])} disabled={isSelf} className="border border-gray-300 rounded px-2 py-1 text-sm disabled:bg-gray-100 disabled:text-gray-500">
+                <option value="USER">{t('role.USER', { ns: 'enums' }) as string}</option>
+                <option value="SUPERVISOR">{t('role.SUPERVISOR', { ns: 'enums' }) as string}</option>
+                <option value="FINANCIAL_ADMIN">{t('role.FINANCIAL_ADMIN', { ns: 'enums' }) as string}</option>
+              </select>
+              {isSelf && <span className="text-xs text-gray-400">{t('ownRoleLocked')}</span>}
+            </div>
           ) : (t(`role.${user.role}`, { ns: 'enums' }) as string)}
         </td>
         <td className="px-4 py-3">
@@ -125,6 +131,13 @@ function UserRow({ user, supervisors, onEdit, editing, onSave, onCancel, saving,
           </div>
         </td>
       </tr>
+      {editing && error != null && (
+        <tr>
+          <td colSpan={5} className="px-4 pb-3">
+            <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{translateApiError(error)}</div>
+          </td>
+        </tr>
+      )}
       {showAccounts && (user.role === 'SUPERVISOR' || user.role === 'FINANCIAL_ADMIN') && (
         <tr>
           <td colSpan={5} className="bg-gray-50 px-8 py-4">

@@ -10,6 +10,7 @@
   "accounts": "Comptes",
   "hide": "Masquer",
   "noSupervisor": "Aucun",
+  "ownRoleLocked": "Vous ne pouvez pas modifier votre propre rôle",
   "accountsHeader": "Numéros de compte pour {{name}}",
   "accountNumber": "N° de compte",
   "accountLabel": "Libellé",

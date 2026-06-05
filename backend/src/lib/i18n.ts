@@ -20,6 +20,9 @@ const EN: Record<ErrorCode, string> = {
   USER_NOT_FOUND: "User not found",
   USER_SUPERVISOR_INVALID_ROLE:
     "Assigned supervisor must have SUPERVISOR or FINANCIAL_ADMIN role",
+  USER_CANNOT_DEMOTE_SELF: "You cannot change your own role.",
+  USER_HAS_SUBORDINATES:
+    "Reassign this supervisor's {{count}} team member(s) to another supervisor before changing their role.",
   SUPERVISOR_NOT_FOUND: "Supervisor not found",
   ACCOUNT_NOT_FOUND: "Account not found",
   ACCOUNT_NUMBER_DUPLICATE: "Account number already exists for this supervisor",
@@ -82,6 +85,9 @@ const FR: Record<ErrorCode, string> = {
   USER_NOT_FOUND: "Utilisateur introuvable",
   USER_SUPERVISOR_INVALID_ROLE:
     "Le superviseur assigné doit avoir le rôle SUPERVISEUR ou ADMIN FINANCIER",
+  USER_CANNOT_DEMOTE_SELF: "Vous ne pouvez pas modifier votre propre rôle.",
+  USER_HAS_SUBORDINATES:
+    "Réaffectez les {{count}} membre(s) de l'équipe de ce superviseur à un autre superviseur avant de modifier son rôle.",
   SUPERVISOR_NOT_FOUND: "Superviseur introuvable",
   ACCOUNT_NOT_FOUND: "Compte introuvable",
   ACCOUNT_NUMBER_DUPLICATE:

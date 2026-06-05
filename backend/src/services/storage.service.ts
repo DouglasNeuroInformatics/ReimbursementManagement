@@ -74,7 +74,7 @@ export async function getDocumentPresignedUrl(
     where: { id: docId, requestId },
   });
   if (!doc) throw new AppError(404, "DOCUMENT_NOT_FOUND");
-  return getPresignedDownloadUrl(doc.s3Key, 300);
+  return getPresignedDownloadUrl(doc.s3Key, 300, doc.filename, doc.contentType);
 }
 
 export async function deleteDocument(
