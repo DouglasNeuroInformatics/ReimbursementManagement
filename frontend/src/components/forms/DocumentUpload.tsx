@@ -108,7 +108,7 @@ export function DocumentUpload({ files, onChange, requestId, existingDocs = [], 
 
       {files.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t('upload.pending')}</p>
+          <p className="text-xs font-medium text-gray-500">{t('upload.pending')}</p>
           {files.map((f, i) => (
             <div key={`${f.name}-${f.size}-${f.lastModified}`} className="flex items-center justify-between py-1.5 px-3 bg-blue-50 rounded-lg text-sm">
               <span className="text-gray-700 truncate">{f.name}</span>

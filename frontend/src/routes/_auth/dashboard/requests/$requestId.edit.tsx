@@ -14,7 +14,10 @@ import { Card, CardHeader, CardBody } from '../../../../components/ui/Card'
 import { DateInput } from '../../../../components/ui/DateInput'
 import { DocumentUpload } from '../../../../components/forms/DocumentUpload'
 import { PageSpinner } from '../../../../components/ui/Spinner'
+import { FormError } from '../../../../components/forms/FormError'
+import { TrashIcon } from '../../../../components/ui/icons'
 import { translateApiError } from '../../../../lib/translateApiError'
+import { validateExpenseItems, type ExpenseItemErrors } from '../../../../lib/validateExpenseItems'
 import type { Request } from '../../../../types'
 
 export const Route = createFileRoute('/_auth/dashboard/requests/$requestId/edit')({ component: EditRequestPage })
@@ -46,11 +49,6 @@ function EditRequestPage() {
 }
 
 /* ── Shared ── */
-
-function ErrorBanner({ message }: { message: string }) {
-  if (!message) return null
-  return <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{message}</div>
-}
 
 function ActionButtons({
   onCancel,
@@ -90,7 +88,11 @@ function ReimbursementEdit({ request }: { request: Request }) {
   const updateReq = useUpdateRequest()
   const submitReq = useSubmitRequest()
   const uploadDoc = useUploadDocument()
-  const [error, setError] = useState('')
+  // API errors are kept raw and translated at render so they follow locale
+  // changes (#6e); field errors hold i18n keys for the same reason.
+  const [apiError, setApiError] = useState<unknown>(null)
+  const [titleError, setTitleError] = useState('')
+  const [itemErrors, setItemErrors] = useState<Record<number, ExpenseItemErrors>>({})
   const [andSubmit, setAndSubmit] = useState(false)
   const { t } = useTranslation(['requests', 'forms'])
 
@@ -112,15 +114,21 @@ function ReimbursementEdit({ request }: { request: Request }) {
       items: initialItems,
     },
     onSubmit: async ({ value }) => {
-      setError('')
+      setApiError(null)
+      const { itemErrors: fieldErrs } = validateExpenseItems(
+        value.items.map((it) => ({ label: it.description, amount: it.amount, date: it.date, files: it.files })),
+        { labelRequiredKey: 'forms:validation.descriptionRequired' },
+      )
+      const tErr = value.title.trim() ? '' : 'forms:validation.titleRequired'
+      setItemErrors(fieldErrs)
+      setTitleError(tErr)
+      if (tErr || Object.keys(fieldErrs).length > 0) {
+        const targetId = tErr ? 'rbe-title' : `rbe-item-${Object.keys(fieldErrs)[0]}`
+        requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+        return
+      }
       try {
-        const hasData = (it: ReimbursementRow) => it.description.trim() || it.amount || it.date || it.files.length > 0
-        const isComplete = (it: ReimbursementRow) => it.description.trim() && it.amount && it.date
-        if (value.items.some((it) => hasData(it) && !isComplete(it))) {
-          setError(t('forms:incompleteItemsError') as string)
-          return
-        }
-        const validItems = value.items.filter(isComplete)
+        const validItems = value.items.filter((it) => it.description.trim() && it.amount && it.date)
 
         const result = await updateReq.mutateAsync({
           id: request.id,
@@ -152,24 +160,31 @@ function ReimbursementEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(translateApiError(err) || (t('forms:saveFailed') as string))
+        setApiError(err)
       }
     },
   })
 
   const isSaving = updateReq.isPending || submitReq.isPending || uploadDoc.isPending
+  const summaryError = apiError
+    ? translateApiError(apiError)
+    : titleError || Object.keys(itemErrors).length > 0
+      ? (t('forms:fixErrors') as string)
+      : ''
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
       <h1 className="text-2xl font-bold text-gray-900">{t('editGeneral')}</h1>
-      <ErrorBanner message={error} />
+      <FormError message={summaryError} />
 
       <Card>
         <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
             {(field) => (
-              <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+              <div id="rbe-title">
+                <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={titleError ? (t(titleError) as string) : undefined} required />
+              </div>
             )}
           </form.Field>
           <form.Field name="description">
@@ -186,28 +201,32 @@ function ReimbursementEdit({ request }: { request: Request }) {
           <form.Field name="items" mode="array">
             {(itemsField) => (
               <>
-                {itemsField.state.value.map((_, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
+                {itemsField.state.value.map((_, index) => {
+                  const fe = itemErrors[index]
+                  return (
+                  <div key={index} id={`rbe-item-${index}`} className="p-4 border border-gray-200 rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{t('item', { n: index + 1 })}</span>
+                      <span className="text-sm font-semibold text-gray-800">{t('item', { n: index + 1 })}</span>
                       {itemsField.state.value.length > 1 && (
-                        <Button variant="ghost" size="sm" type="button" onClick={() => itemsField.removeValue(index)}>{t('forms:remove')}</Button>
+                        <Button variant="danger" size="sm" type="button" onClick={() => itemsField.removeValue(index)}>
+                          <span className="flex items-center gap-1"><TrashIcon />{t('forms:remove')}</span>
+                        </Button>
                       )}
                     </div>
                     <form.Field name={`items[${index}].description`}>
                       {(field) => (
-                        <Input label={t('fields.description') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                        <Input label={t('fields.description') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.label ? (t(fe.label) as string) : undefined} required />
                       )}
                     </form.Field>
                     <div className="grid grid-cols-2 gap-4">
                       <form.Field name={`items[${index}].amount`}>
                         {(field) => (
-                          <Input label={t('fields.amount') as string} type="number" step="0.01" min="0" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                          <Input label={t('fields.amount') as string} type="number" step="0.01" min="0" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.amount ? (t(fe.amount) as string) : undefined} required />
                         )}
                       </form.Field>
                       <form.Field name={`items[${index}].date`}>
                         {(field) => (
-                          <DateInput label={t('fields.date') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                          <DateInput label={t('fields.date') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.date ? (t(fe.date) as string) : undefined} required />
                         )}
                       </form.Field>
                     </div>
@@ -227,7 +246,8 @@ function ReimbursementEdit({ request }: { request: Request }) {
                       )}
                     </form.Field>
                   </div>
-                ))}
+                  )
+                })}
                 <Button
                   variant="secondary"
                   type="button"
@@ -241,6 +261,7 @@ function ReimbursementEdit({ request }: { request: Request }) {
         </CardBody>
       </Card>
 
+      <FormError message={summaryError} />
       <ActionButtons
         onCancel={() => navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })}
         onSave={() => { setAndSubmit(false); form.handleSubmit() }}
@@ -265,7 +286,9 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
   const updateReq = useUpdateRequest()
   const submitReq = useSubmitRequest()
   const uploadDoc = useUploadDocument()
-  const [error, setError] = useState('')
+  const [apiError, setApiError] = useState<unknown>(null)
+  const [topErrors, setTopErrors] = useState<{ title?: string; destination?: string; purpose?: string }>({})
+  const [itemErrors, setItemErrors] = useState<Record<number, ExpenseItemErrors>>({})
   const [andSubmit, setAndSubmit] = useState(false)
   const [requestFiles, setRequestFiles] = useState<File[]>([])
   const { t } = useTranslation(['requests', 'forms'])
@@ -287,7 +310,22 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
       items: initialItems,
     },
     onSubmit: async ({ value }) => {
-      setError('')
+      setApiError(null)
+      const { itemErrors: fieldErrs } = validateExpenseItems(
+        value.items.map((it) => ({ label: it.category, amount: it.amount, date: '' })),
+        { labelRequiredKey: 'forms:validation.categoryRequired', requireDate: false },
+      )
+      const te: { title?: string; destination?: string; purpose?: string } = {}
+      if (!value.title.trim()) te.title = 'forms:validation.titleRequired'
+      if (!value.destination.trim()) te.destination = 'forms:validation.destinationRequired'
+      if (!value.purpose.trim()) te.purpose = 'forms:validation.purposeRequired'
+      setTopErrors(te)
+      setItemErrors(fieldErrs)
+      if (Object.keys(te).length > 0 || Object.keys(fieldErrs).length > 0) {
+        const targetId = te.title ? 'tae-title' : te.destination ? 'tae-destination' : te.purpose ? 'tae-purpose' : `tae-item-${Object.keys(fieldErrs)[0]}`
+        requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+        return
+      }
       try {
         const validItems = value.items.filter((it) => it.category && it.amount)
         await updateReq.mutateAsync({
@@ -317,24 +355,29 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(translateApiError(err) || (t('forms:saveFailed') as string))
+        setApiError(err)
       }
     },
   })
 
   const isSaving = updateReq.isPending || submitReq.isPending || uploadDoc.isPending
   const existingUnlinkedDocs = request.documents?.filter((d) => !d.reimbursementItemId) ?? []
+  const summaryError = apiError
+    ? translateApiError(apiError)
+    : Object.keys(topErrors).length > 0 || Object.keys(itemErrors).length > 0
+      ? (t('forms:fixErrors') as string)
+      : ''
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
       <h1 className="text-2xl font-bold text-gray-900">{t('editTravelAdvance')}</h1>
-      <ErrorBanner message={error} />
+      <FormError message={summaryError} />
 
       <Card>
         <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
-            {(field) => <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tae-title"><Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.title ? (t(topErrors.title) as string) : undefined} required /></div>}
           </form.Field>
           <form.Field name="description">
             {(field) => <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
@@ -346,10 +389,10 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
         <CardHeader><span className="font-semibold">{t('tripDetails')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="destination">
-            {(field) => <Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tae-destination"><Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.destination ? (t(topErrors.destination) as string) : undefined} required /></div>}
           </form.Field>
           <form.Field name="purpose">
-            {(field) => <Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tae-purpose"><Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.purpose ? (t(topErrors.purpose) as string) : undefined} required /></div>}
           </form.Field>
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="departureDate">
@@ -377,13 +420,15 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
           <form.Field name="items" mode="array">
             {(itemsField) => (
               <div className="space-y-2">
-                {itemsField.state.value.map((_, i) => (
-                  <div key={i} className="grid grid-cols-3 gap-2 items-start">
+                {itemsField.state.value.map((_, i) => {
+                  const fe = itemErrors[i]
+                  return (
+                  <div key={i} id={`tae-item-${i}`} className="grid grid-cols-3 gap-2 items-start">
                     <form.Field name={`items[${i}].category`}>
-                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.label ? (t(fe.label) as string) : undefined} />}
                     </form.Field>
                     <form.Field name={`items[${i}].amount`}>
-                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.amount ? (t(fe.amount) as string) : undefined} />}
                     </form.Field>
                     <div className="flex gap-1">
                       <form.Field name={`items[${i}].notes`}>
@@ -394,7 +439,8 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
                       )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </form.Field>
@@ -408,6 +454,7 @@ function TravelAdvanceEdit({ request }: { request: Request }) {
         </CardBody>
       </Card>
 
+      <FormError message={summaryError} />
       <ActionButtons
         onCancel={() => navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })}
         onSave={() => { setAndSubmit(false); form.handleSubmit() }}
@@ -434,7 +481,9 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
   const updateReq = useUpdateRequest()
   const submitReq = useSubmitRequest()
   const uploadDoc = useUploadDocument()
-  const [error, setError] = useState('')
+  const [apiError, setApiError] = useState<unknown>(null)
+  const [topErrors, setTopErrors] = useState<{ title?: string; destination?: string; purpose?: string }>({})
+  const [itemErrors, setItemErrors] = useState<Record<number, ExpenseItemErrors>>({})
   const [andSubmit, setAndSubmit] = useState(false)
   const [requestFiles, setRequestFiles] = useState<File[]>([])
   const { t } = useTranslation(['requests', 'forms'])
@@ -462,7 +511,22 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
       items: initialItems,
     },
     onSubmit: async ({ value }) => {
-      setError('')
+      setApiError(null)
+      const { itemErrors: fieldErrs } = validateExpenseItems(
+        value.items.map((it) => ({ label: it.category, amount: it.amount, date: it.date })),
+        { labelRequiredKey: 'forms:validation.categoryRequired', requireDate: true },
+      )
+      const te: { title?: string; destination?: string; purpose?: string } = {}
+      if (!value.title.trim()) te.title = 'forms:validation.titleRequired'
+      if (!value.destination.trim()) te.destination = 'forms:validation.destinationRequired'
+      if (!value.purpose.trim()) te.purpose = 'forms:validation.purposeRequired'
+      setTopErrors(te)
+      setItemErrors(fieldErrs)
+      if (Object.keys(te).length > 0 || Object.keys(fieldErrs).length > 0) {
+        const targetId = te.title ? 'tre-title' : te.destination ? 'tre-destination' : te.purpose ? 'tre-purpose' : `tre-item-${Object.keys(fieldErrs)[0]}`
+        requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+        return
+      }
       try {
         const validItems = value.items.filter((it) => it.date && it.category && it.amount)
         await updateReq.mutateAsync({
@@ -494,24 +558,29 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
         if (andSubmit) await submitReq.mutateAsync(request.id)
         navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })
       } catch (err: unknown) {
-        setError(translateApiError(err) || (t('forms:saveFailed') as string))
+        setApiError(err)
       }
     },
   })
 
   const isSaving = updateReq.isPending || submitReq.isPending || uploadDoc.isPending
   const existingUnlinkedDocs = request.documents?.filter((d) => !d.reimbursementItemId) ?? []
+  const summaryError = apiError
+    ? translateApiError(apiError)
+    : Object.keys(topErrors).length > 0 || Object.keys(itemErrors).length > 0
+      ? (t('forms:fixErrors') as string)
+      : ''
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit() }} className="max-w-2xl space-y-5">
       <h1 className="text-2xl font-bold text-gray-900">{t('editTravelReimbursement')}</h1>
-      <ErrorBanner message={error} />
+      <FormError message={summaryError} />
 
       <Card>
         <CardHeader><span className="font-semibold">{t('details')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="title">
-            {(field) => <Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tre-title"><Input label={t('fields.title') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.title ? (t(topErrors.title) as string) : undefined} required /></div>}
           </form.Field>
           <form.Field name="description">
             {(field) => <Textarea label={`${t('fields.description')} ${t('forms:optional')}`} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
@@ -523,10 +592,10 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
         <CardHeader><span className="font-semibold">{t('tripDetails')}</span></CardHeader>
         <CardBody className="space-y-4">
           <form.Field name="destination">
-            {(field) => <Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tre-destination"><Input label={t('fields.destination') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.destination ? (t(topErrors.destination) as string) : undefined} required /></div>}
           </form.Field>
           <form.Field name="purpose">
-            {(field) => <Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />}
+            {(field) => <div id="tre-purpose"><Input label={t('fields.purpose') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={topErrors.purpose ? (t(topErrors.purpose) as string) : undefined} required /></div>}
           </form.Field>
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="departureDate">
@@ -554,16 +623,18 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
           <form.Field name="items" mode="array">
             {(itemsField) => (
               <div className="space-y-2">
-                {itemsField.state.value.map((_, i) => (
-                  <div key={i} className="grid grid-cols-4 gap-2 items-start">
+                {itemsField.state.value.map((_, i) => {
+                  const fe = itemErrors[i]
+                  return (
+                  <div key={i} id={`tre-item-${i}`} className="grid grid-cols-4 gap-2 items-start">
                     <form.Field name={`items[${i}].date`}>
-                      {(field) => <DateInput placeholder="YYYY-MM-DD" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <DateInput placeholder="YYYY-MM-DD" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.date ? (t(fe.date) as string) : undefined} />}
                     </form.Field>
                     <form.Field name={`items[${i}].category`}>
-                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.category') as string} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.label ? (t(fe.label) as string) : undefined} />}
                     </form.Field>
                     <form.Field name={`items[${i}].amount`}>
-                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} />}
+                      {(field) => <Input placeholder={t('fields.amount') as string} type="number" step="0.01" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} error={fe?.amount ? (t(fe.amount) as string) : undefined} />}
                     </form.Field>
                     <div className="flex gap-1">
                       <form.Field name={`items[${i}].vendor`}>
@@ -574,7 +645,8 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
                       )}
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </form.Field>
@@ -588,6 +660,7 @@ function TravelReimbursementEdit({ request }: { request: Request }) {
         </CardBody>
       </Card>
 
+      <FormError message={summaryError} />
       <ActionButtons
         onCancel={() => navigate({ to: '/dashboard/requests/$requestId', params: { requestId: request.id } })}
         onSave={() => { setAndSubmit(false); form.handleSubmit() }}

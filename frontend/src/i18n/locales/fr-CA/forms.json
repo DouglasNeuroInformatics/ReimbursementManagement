@@ -16,6 +16,19 @@
   "saveFailed": "Échec de l'enregistrement",
   "saveGeneric": "Échec",
   "incompleteItemsError": "Chaque ligne avec des données ou des fichiers doit avoir une description, un montant et une date.",
+  "fixErrors": "Veuillez corriger les champs surlignés ci-dessous.",
+  "validation": {
+    "titleRequired": "Le titre est requis",
+    "destinationRequired": "La destination est requise",
+    "purposeRequired": "Le but est requis",
+    "descriptionRequired": "La description est requise",
+    "categoryRequired": "La catégorie est requise",
+    "amountRequired": "Le montant est requis",
+    "amountInvalid": "Le montant doit être un nombre",
+    "amountPositive": "Le montant doit être supérieur à 0",
+    "dateRequired": "La date est requise",
+    "dateInvalid": "Entrez une date valide (AAAA-MM-JJ)"
+  },
   "optional": "(facultatif)",
   "back": "Retour",
   "browse": "parcourir",
@@ -26,7 +39,7 @@
     "exceedsMaxSize": "{{name}} dépasse la limite de {{maxMb}} Mo",
     "unsupportedFileTypes": "Type de fichier non pris en charge : {{names}}\nAutorisés : PDF, images, Word, Excel, CSV, texte simple",
     "uploaded": "Téléversés",
-    "pending": "En attente de téléversement",
+    "pending": "Joint — sera téléversé à l'enregistrement",
     "download": "Télécharger"
   }
 }

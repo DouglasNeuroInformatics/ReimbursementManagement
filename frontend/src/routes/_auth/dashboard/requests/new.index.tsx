@@ -16,9 +16,9 @@ function NewRequestPage() {
     <div className="max-w-2xl space-y-4">
       <h1 className="text-2xl font-bold text-gray-900">{t('newRequest')}</h1>
       <p className="text-gray-500 text-sm">{t('selectType')}</p>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {TYPES.map((row) => (
-          <Link key={row.key} to={row.to}>
+          <Link key={row.key} to={row.to} className="block">
             <Card className="hover:border-blue-400 hover:shadow-md transition-all cursor-pointer">
               <CardBody>
                 <div className="font-semibold text-gray-900">{t(row.titleKey)}</div>

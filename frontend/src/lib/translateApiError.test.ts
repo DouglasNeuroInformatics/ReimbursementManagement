@@ -20,6 +20,28 @@ describe('translateApiError', () => {
     expect(translateApiError(err)).toBe('Access denied. Required role(s): SUPERVISOR')
   })
 
+  it('expands VALIDATION_ERROR issues into a per-field summary', () => {
+    const err = new ApiError(422, 'Validation error', 'VALIDATION_ERROR', {
+      issues: [
+        { path: 'title', code: 'VALIDATION_REQUIRED' },
+        { path: 'reimbursement.items.0.amount', code: 'VALIDATION_MIN', meta: { min: 0 } },
+      ],
+    })
+    const out = translateApiError(err)
+    // Per-field, not the bare "Validation error" fallback.
+    expect(out).not.toBe('Validation error')
+    expect(out).toContain('Title: Required')
+    expect(out).toContain('Item 1 — Amount: Value is too small (minimum: 0)')
+    expect(out).toContain('; ')
+  })
+
+  it('falls back to the generic validation label for an unknown issue code', () => {
+    const err = new ApiError(422, 'Validation error', 'VALIDATION_ERROR', {
+      issues: [{ path: 'title', code: 'NOT_A_REAL_ISSUE_CODE' as never }],
+    })
+    expect(translateApiError(err)).toBe('Title: Validation error')
+  })
+
   it('falls back to the ApiError message when the code has no translation', () => {
     const err = new ApiError(400, 'a very specific server message', 'NOT_A_REAL_CODE')
     expect(translateApiError(err)).toBe('a very specific server message')

@@ -34,10 +34,10 @@ function RequestDetailPage() {
 
   return (
     <div className="max-w-3xl space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{request.title}</h1>
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center gap-3 mt-2">
             <StatusBadge status={request.status} />
             <span className="text-sm text-gray-500">{t(`requestType.${request.type}`, { ns: 'enums' }) as string}</span>
           </div>

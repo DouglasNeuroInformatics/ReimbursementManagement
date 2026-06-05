@@ -189,10 +189,10 @@ export function RequestItemsView({ request, requestId, extraColumn }: Props) {
       {request.reimbursement && request.reimbursement.items.some((it) => (it.documents?.length ?? 0) > 0) && (
         <Card>
           <CardHeader><span className="font-semibold">{t('sections.itemDocuments')}</span></CardHeader>
-          <CardBody className="space-y-3">
+          <CardBody className="space-y-5">
             {request.reimbursement.items.filter((it) => (it.documents?.length ?? 0) > 0).map((it) => (
               <div key={it.id}>
-                <p className="text-sm font-medium text-gray-700 mb-1">{it.description}</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">{it.description}</p>
                 <DocumentUpload files={[]} onChange={() => {}} requestId={requestId} existingDocs={it.documents} readOnly />
               </div>
             ))}

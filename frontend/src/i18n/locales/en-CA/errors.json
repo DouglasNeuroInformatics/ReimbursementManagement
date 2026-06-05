@@ -14,6 +14,8 @@
   "AUTH_RATE_LIMITED": "Too many requests. Please wait a minute and try again.",
   "USER_NOT_FOUND": "User not found",
   "USER_SUPERVISOR_INVALID_ROLE": "The assigned supervisor must be a Supervisor or Financial Admin",
+  "USER_CANNOT_DEMOTE_SELF": "You cannot change your own role.",
+  "USER_HAS_SUBORDINATES": "Reassign this supervisor's {{count}} team member(s) to another supervisor before changing their role.",
   "SUPERVISOR_NOT_FOUND": "Supervisor not found",
   "ACCOUNT_NOT_FOUND": "Account not found",
   "ACCOUNT_NUMBER_DUPLICATE": "This account number is already in use for this supervisor",

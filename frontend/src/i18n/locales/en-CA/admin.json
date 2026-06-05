@@ -10,6 +10,7 @@
   "accounts": "Accounts",
   "hide": "Hide",
   "noSupervisor": "None",
+  "ownRoleLocked": "You can't change your own role",
   "accountsHeader": "Account Numbers for {{name}}",
   "accountNumber": "Account #",
   "accountLabel": "Label",
