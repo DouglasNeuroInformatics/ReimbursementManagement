@@ -39,7 +39,12 @@ export async function listUsers() {
 
 export async function updateUser(
   targetId: string,
-  data: { role?: Role; supervisorId?: string | null; employeeNumber?: string | null; department?: string | null },
+  data: {
+    role?: Role;
+    supervisorId?: string | null;
+    employeeNumber?: string | null;
+    department?: string | null;
+  },
   currentUserId?: string,
 ) {
   const user = await prisma.user.findUnique({ where: { id: targetId } });
@@ -89,9 +94,7 @@ export async function updateUser(
       ...(data.employeeNumber !== undefined
         ? { employeeNumber: data.employeeNumber }
         : {}),
-      ...(data.department !== undefined
-        ? { department: data.department }
-        : {}),
+      ...(data.department !== undefined ? { department: data.department } : {}),
     },
     select: USER_UPDATE_SELECT,
   });

@@ -87,7 +87,10 @@ export async function deleteObject(key: string): Promise<void> {
  */
 function attachmentDisposition(filename: string): string {
   // Strip control chars and quotes for the ASCII fallback.
-  const ascii = filename.replace(/["\\\r\n]/g, "").replace(/[^\x20-\x7E]/g, "_");
+  const ascii = filename.replace(/["\\\r\n]/g, "").replace(
+    /[^\x20-\x7E]/g,
+    "_",
+  );
   const encoded = encodeURIComponent(filename);
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
 }
@@ -98,7 +101,9 @@ export async function getPresignedDownloadUrl(
   filename?: string,
   contentType?: string,
 ): Promise<string> {
-  if (Deno.env.get("NODE_ENV") === "test") return `http://mock-s3-url.local/${key}`;
+  if (Deno.env.get("NODE_ENV") === "test") {
+    return `http://mock-s3-url.local/${key}`;
+  }
   const s3 = getS3Public();
   const { S3_BUCKET } = getEnv();
   return getSignedUrl(

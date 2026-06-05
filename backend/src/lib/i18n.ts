@@ -64,7 +64,8 @@ const EN: Record<ErrorCode, string> = {
   DOCUMENT_FILE_TOO_LARGE: "File exceeds maximum size of {{maxMb}}MB",
   DOCUMENT_TYPE_NOT_ALLOWED: "File type '{{fileType}}' is not allowed",
   DOCUMENT_ITEM_MISMATCH: "Item does not belong to this request",
-  REPORT_WRONG_STATUS: "Report is only available for finance-approved or paid requests",
+  REPORT_WRONG_STATUS:
+    "Report is only available for finance-approved or paid requests",
 };
 
 const FR: Record<ErrorCode, string> = {
@@ -77,8 +78,7 @@ const FR: Record<ErrorCode, string> = {
   AUTH_REFRESH_TOKEN_MISSING: "Aucun jeton de rafraîchissement fourni",
   AUTH_REFRESH_TOKEN_INVALID: "Jeton de rafraîchissement invalide",
   AUTH_REFRESH_TOKEN_EXPIRED: "Jeton de rafraîchissement expiré",
-  AUTH_CSRF_FAILED:
-    "Contrôle CSRF échoué : en-tête X-Requested-With manquant",
+  AUTH_CSRF_FAILED: "Contrôle CSRF échoué : en-tête X-Requested-With manquant",
   AUTH_FORBIDDEN_ROLE: "Accès refusé. Rôle(s) requis : {{roles}}",
   AUTH_RATE_LIMITED:
     "Trop de requêtes — veuillez attendre une minute et réessayer",
@@ -113,12 +113,12 @@ const FR: Record<ErrorCode, string> = {
   TRAVEL_PURPOSE_REQUIRED: "L'objet est requis",
   LINKED_ADVANCE_MISSING: "L'avance de voyage liée n'existe pas",
   LINKED_ADVANCE_NOT_OWNED: "L'avance de voyage liée ne vous appartient pas",
-  LINKED_ADVANCE_WRONG_TYPE:
-    "La demande liée n'est pas une avance de voyage",
+  LINKED_ADVANCE_WRONG_TYPE: "La demande liée n'est pas une avance de voyage",
   LINKED_ADVANCE_NOT_PAID: "L'avance de voyage liée doit être payée",
   APPROVAL_WRONG_STATUS:
     "Action impossible ({{verb}}) sur une demande au statut : {{status}}",
-  APPROVAL_WRONG_SUPERVISOR: "Cette demande est assignée à un autre superviseur",
+  APPROVAL_WRONG_SUPERVISOR:
+    "Cette demande est assignée à un autre superviseur",
   APPROVAL_ACCOUNT_NOT_FOUND: "Compte introuvable pour ce superviseur",
   APPROVAL_ACCOUNT_INACTIVE: "Le compte sélectionné est inactif",
   APPROVAL_ALREADY_APPROVED: "Vous avez déjà approuvé cette demande",
@@ -128,8 +128,7 @@ const FR: Record<ErrorCode, string> = {
     "Impossible de marquer payée une demande au statut : {{status}}",
   CLASSIFICATION_WRONG_STATUS:
     "Classification impossible pour une demande au statut : {{status}}",
-  CLASSIFICATION_ITEM_NOT_FOUND:
-    "{{itemLabel}} introuvable dans cette demande",
+  CLASSIFICATION_ITEM_NOT_FOUND: "{{itemLabel}} introuvable dans cette demande",
   DOCUMENT_NOT_FOUND: "Document introuvable",
   DOCUMENT_OWNER_ONLY_UPLOAD:
     "Seul le propriétaire de la demande peut téléverser des documents",
@@ -143,7 +142,8 @@ const FR: Record<ErrorCode, string> = {
   DOCUMENT_TYPE_NOT_ALLOWED:
     "Le type de fichier « {{fileType}} » n'est pas autorisé",
   DOCUMENT_ITEM_MISMATCH: "L'élément n'appartient pas à cette demande",
-  REPORT_WRONG_STATUS: "Le rapport n'est disponible que pour les demandes approuvées ou payées",
+  REPORT_WRONG_STATUS:
+    "Le rapport n'est disponible que pour les demandes approuvées ou payées",
 };
 
 const MESSAGES: Record<Locale, Record<ErrorCode, string>> = {
@@ -158,7 +158,8 @@ function interpolate(
   if (!details) return template;
   return template.replace(
     /\{\{(\w+)\}\}/g,
-    (_, key) => details[key] !== undefined ? String(details[key]) : `{{${key}}}`,
+    (_, key) =>
+      details[key] !== undefined ? String(details[key]) : `{{${key}}}`,
   );
 }
 

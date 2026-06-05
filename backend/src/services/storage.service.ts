@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.ts";
-import { putObject, deleteObject, getPresignedDownloadUrl } from "../lib/s3.ts";
+import { deleteObject, getPresignedDownloadUrl, putObject } from "../lib/s3.ts";
 import { AppError } from "../middleware/error.ts";
 
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -25,10 +25,14 @@ export async function uploadDocument(
   reimbursementItemId?: string,
 ) {
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(400, "DOCUMENT_FILE_TOO_LARGE", { maxMb: MAX_FILE_SIZE / 1024 / 1024 });
+    throw new AppError(400, "DOCUMENT_FILE_TOO_LARGE", {
+      maxMb: MAX_FILE_SIZE / 1024 / 1024,
+    });
   }
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    throw new AppError(400, "DOCUMENT_TYPE_NOT_ALLOWED", { fileType: file.type });
+    throw new AppError(400, "DOCUMENT_TYPE_NOT_ALLOWED", {
+      fileType: file.type,
+    });
   }
 
   if (reimbursementItemId) {
@@ -61,7 +65,9 @@ export async function uploadDocument(
       },
     });
   } catch (err) {
-    try { await deleteObject(s3Key); } catch { /* best-effort cleanup */ }
+    try {
+      await deleteObject(s3Key);
+    } catch { /* best-effort cleanup */ }
     throw err;
   }
 }
